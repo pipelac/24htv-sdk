@@ -1,0 +1,6807 @@
+openapi: 3.0.3
+info:
+  title: 24tv Описание провайдерского API
+  version: v2
+  description: "\nВ данном документе описаны только те методы API которые доступны\
+    \ по токену провайдера.\n\n<a href=\"/v2/doc/provider\">Swagger provider API</a>\
+    \ |\n<a href=\"/v2/doc/provider/redoc\">Redoc provider API</a> |\n<a href=\"/v2/doc/provider/old-swagger\"\
+    >Swagger provider API- устаревшая версия</a>\n\n## Schema\nВсе методы доступнны\
+    \ только через HTTPS.\n\n## Methods\nДля взаимодействия с API используются методы\
+    \ GET, POST, PUT, DELETE, PATCH.\nМетоды используются в соответствии со своим\
+    \ назначением по HTTP RFC\n- GET - получение объекта\n- POST - создание\n- PUT\
+    \ - модификация\n- DELETE - удаление\n- PATCH - частичная модификация\n\n## Limits\n\
+    - Для общения с API вам потребуется авторизационный токен (token). Его можно\n\
+    сгенерировать в интерфейсе администратора.\n- token обладает ограничениями по\
+    \ количеству вызовов с секунду, час и сутки.\nБудьте дружелюбными.\n- при выводе\
+    \ большого списка используется постраничный вывод.\nДля получения всего списка\
+    \ следует использовать &limit= и &offset=\n        "
+paths:
+  /v2/auth/provider:
+    post:
+      operationId: auth_provider_create
+      description: |-
+        Это способ аутентификации пользователя с помощью токена провайдера.
+        Метод создает объект Token и возвращает его в случае успеха.
+        Token используется для доступа к методам требующим пользовательской аутентификации.
+
+        В качестве входных параметров используется:
+          - user_id - идентификатор пользователя
+          - username - юзернэйм пользователя
+          - phone - телефон пользователя
+          - all_providers - признак изменения ограничения по провайдерам; если равен True, ограничение происходит
+          по провайдерам, доступным через модель StaffAllowProviders
+
+        Возвращается сессионный токен:
+          - access_token - Токен, используемый для аутентификации запросов текущей сессии.
+          - expires - Время когда токен перестанет быть действительным.
+      summary: Получение токена доступа по идентификатору пользователя
+      parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - dune_plugin
+          - json
+          - xml
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProviderAuthSwagger'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ProviderAuthSwagger'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ProviderAuthSwagger'
+      security:
+      - providerTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Token'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/Token'
+          description: ''
+  /v2/channels:
+    get:
+      operationId: channels_list
+      description: |-
+        Получение списка всех доступных каналов.
+
+        Параметры:
+          - includes - позволяет включить в информацию о канале
+              - images.blackback - логотипы для черного фона
+              - images.whiteback - логотипы для белого фона
+      summary: Получение списка всех доступных каналов
+      parameters:
+      - in: query
+        name: channels_order
+        schema:
+          type: string
+          title: Order channels
+          minLength: 1
+      - in: query
+        name: channels_version
+        schema:
+          type: integer
+          default: 1
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - json
+          - xml
+      - in: query
+        name: includes
+        schema:
+          type: string
+          minLength: 1
+      - in: query
+        name: limit
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          title: Лимит
+      - in: query
+        name: offset
+        schema:
+          type: integer
+          minimum: 0
+      - in: query
+        name: order
+        schema:
+          type: string
+          title: Order field
+          minLength: 1
+      - in: query
+        name: search
+        schema:
+          type: string
+          title: Search string
+          minLength: 1
+      tags:
+      - channels
+      security:
+      - userAccessTokenHeader: []
+      - userAccessToken: []
+      - providerTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ChannelListV2'
+            application/xml:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ChannelListV2'
+          description: ''
+  /v2/channels/{id}:
+    get:
+      operationId: channels_retrieve
+      description: Получение подробной информации о канале
+      summary: Получение информации о канале
+      parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - json
+          - xml
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this channel.
+        required: true
+      tags:
+      - channels
+      security:
+      - userAccessTokenHeader: []
+      - userAccessToken: []
+      - providerTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Channel'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/Channel'
+          description: ''
+  /v2/channels/{id}/content_schedule:
+    get:
+      operationId: channels_content_schedule_retrieve
+      description: |-
+        Метод позволяет получить расписание контента на канале. ID канала является необходимым параметром.
+        В качестве дополнительных параметров фильтрации могут быть использованы: start, end.
+        Расписание вернётся не дальше архива канала.
+      summary: Получение расписания контента на канале
+      parameters:
+      - in: query
+        name: channels_version
+        schema:
+          type: integer
+      - in: query
+        name: date
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: end
+        schema:
+          type: integer
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - json
+          - xml
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this channel.
+        required: true
+      - in: query
+        name: limit
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          title: Лимит
+      - in: query
+        name: offset
+        schema:
+          type: integer
+          minimum: 0
+      - in: query
+        name: start
+        schema:
+          type: integer
+      tags:
+      - channels
+      security:
+      - userAccessTokenHeader: []
+      - userAccessToken: []
+      - providerTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShortContentSchedule'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ShortContentSchedule'
+          description: ''
+  /v2/channels/{id}/packets:
+    get:
+      operationId: channels_packets_retrieve
+      description: Метод позволяет получить все пакеты в который входит данный канал.
+      summary: Получение пакетов в которые входит канал
+      parameters:
+      - in: query
+        name: channels_version
+        schema:
+          type: integer
+      - in: query
+        name: date
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: end
+        schema:
+          type: integer
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - json
+          - xml
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this channel.
+        required: true
+      - in: query
+        name: limit
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          title: Лимит
+      - in: query
+        name: offset
+        schema:
+          type: integer
+          minimum: 0
+      - in: query
+        name: start
+        schema:
+          type: integer
+      tags:
+      - channels
+      security:
+      - userAccessTokenHeader: []
+      - userAccessToken: []
+      - providerTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Packet'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/Packet'
+          description: ''
+  /v2/channels/{id}/purchasepacket_short:
+    get:
+      operationId: channels_purchasepacket_short_retrieve
+      description: |-
+        Метод позволяет получить короткую информацию для всех id пакетов доступные через
+        покупки в который входит данный канал.
+      summary: Получение пакетов доступных через покупки входящий в канал **
+      parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - json
+          - xml
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this channel.
+        required: true
+      - in: query
+        name: timestamp
+        schema:
+          type: integer
+          default: 0
+      tags:
+      - channels
+      security:
+      - userAccessTokenHeader: []
+      - userAccessToken: []
+      - providerTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PurchasePacketShort'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/PurchasePacketShort'
+          description: ''
+  /v2/channels/{id}/quick_sales_packets:
+    get:
+      operationId: channels_quick_sales_packets_retrieve
+      description: Метод позволяет получить все комбинации пакетов в который входит
+        данный канал для быстрых продаж.
+      summary: Получение пакетов входящих в канал для быстрой продажи
+      parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - json
+          - xml
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this channel.
+        required: true
+      - in: query
+        name: timestamp
+        schema:
+          type: integer
+          default: 0
+      tags:
+      - channels
+      security:
+      - userAccessTokenHeader: []
+      - userAccessToken: []
+      - providerTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Offer'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/Offer'
+          description: ''
+  /v2/channels/{id}/schedule:
+    get:
+      operationId: channels_schedule_retrieve
+      description: |-
+        Метод позволяет получить расписание программ на канале. ID канала является необходимым параметром.
+        В качестве дополнительных параметров фильтрации могут быть использованы: date, start, end
+      summary: Получение расписания программ на канале
+      parameters:
+      - in: query
+        name: channels_version
+        schema:
+          type: integer
+      - in: query
+        name: date
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: end
+        schema:
+          type: integer
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - json
+          - xml
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this channel.
+        required: true
+      - in: query
+        name: limit
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          title: Лимит
+      - in: query
+        name: offset
+        schema:
+          type: integer
+          minimum: 0
+      - in: query
+        name: start
+        schema:
+          type: integer
+      tags:
+      - channels
+      security:
+      - userAccessTokenHeader: []
+      - userAccessToken: []
+      - providerTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Schedule'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/Schedule'
+          description: ''
+  /v2/channels/{id}/stream:
+    get:
+      operationId: channels_stream_retrieve
+      description: |-
+        Метод позволяет получить поток канала.
+
+        В качестве параметров могут быть переданы:
+          - тип (протокол) потока ("hls" (default), "local", "local_low", "http", "http_low", "config", "multicast")
+          - timestamp начала потока (ts=0 (default) - прямой эфир)
+          - сделать ли запись в историю просмотра (history=true)
+          - идентификатор видеопотока (video_num=1). Если протокол позволяет (например HLS, DASH) -
+            можно запросить несколько потоков
+          - идентификатор аудиопотока (audio_num=2). Если протокол позволяет (например HLS, DASH) -
+            можно запросить несколько потоков
+      summary: Получение потока для канала
+      parameters:
+      - in: query
+        name: access_token
+        schema:
+          type: string
+          minLength: 1
+      - in: query
+        name: audio_num
+        schema:
+          type: string
+          nullable: true
+          minLength: 1
+      - in: query
+        name: disable_stat
+        schema:
+          type: boolean
+          default: false
+      - in: query
+        name: force_https
+        schema:
+          type: boolean
+          default: false
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - json
+          - xml
+      - in: query
+        name: history
+        schema:
+          type: boolean
+          default: true
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this channel.
+        required: true
+      - in: query
+        name: library_id
+        schema:
+          type: integer
+          minimum: 1
+          title: Библиотека
+      - in: query
+        name: preview
+        schema:
+          type: boolean
+          default: false
+      - in: query
+        name: remote
+        schema:
+          type: string
+          title: Remote IP
+          minLength: 1
+      - in: query
+        name: seek_ts
+        schema:
+          type: integer
+      - in: query
+        name: ts
+        schema:
+          type: integer
+          default: 0
+      - in: query
+        name: type
+        schema:
+          type: string
+          default: hls
+          minLength: 1
+      - in: query
+        name: video_num
+        schema:
+          type: string
+          nullable: true
+          minLength: 1
+      tags:
+      - channels
+      security:
+      - userAccessTokenHeader: []
+      - userAccessToken: []
+      - providerTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+            application/xml:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /v2/channels/categories:
+    get:
+      operationId: channels_categories_list
+      description: |-
+        Получение списка доступных категорий и каналов в них.
+
+        Параметры:
+          - includes - позволяет включить в информацию о канале
+            - images.blackback - логотипы для черного фона
+            - images.whiteback - логотипы для белого фона
+      summary: Получение списка доступных категорий и каналов в них
+      parameters:
+      - in: query
+        name: channels_order
+        schema:
+          type: string
+          title: Channels order field
+          minLength: 1
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - json
+          - xml
+      - in: query
+        name: includes
+        schema:
+          type: string
+          minLength: 1
+      - in: query
+        name: order
+        schema:
+          type: string
+          title: Order field
+          minLength: 1
+      - in: query
+        name: search
+        schema:
+          type: string
+          title: Search string
+          minLength: 1
+      tags:
+      - channels
+      security:
+      - userAccessTokenHeader: []
+      - userAccessToken: []
+      - providerTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Category'
+            application/xml:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Category'
+          description: ''
+  /v2/channels/category_list:
+    get:
+      operationId: channels_category_list_list
+      description: |-
+        Список категорий c ID каналов в них
+
+        v.3  category list with channel ids
+        Method returns info about channels that are available to user's provider only
+      summary: Получение списка категорий c ID каналов в них (v3)
+      parameters:
+      - in: query
+        name: channels_order
+        schema:
+          type: string
+          title: Order channels
+          minLength: 1
+      - in: query
+        name: channels_version
+        schema:
+          type: integer
+          default: 1
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - dune_plugin
+          - json
+          - xml
+      - in: query
+        name: includes
+        schema:
+          type: string
+          minLength: 1
+      - in: query
+        name: limit
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          title: Лимит
+      - in: query
+        name: offset
+        schema:
+          type: integer
+          minimum: 0
+      - in: query
+        name: order
+        schema:
+          type: string
+          title: Order field
+          minLength: 1
+      - in: query
+        name: search
+        schema:
+          type: string
+          title: Search string
+          minLength: 1
+      tags:
+      - channels
+      security:
+      - userAccessTokenHeader: []
+      - userAccessToken: []
+      - providerTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CategoryList'
+            application/xml:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CategoryList'
+          description: ''
+  /v2/channels/channel_list:
+    get:
+      operationId: channels_channel_list_list
+      description: |-
+        Получение списка всех доступных каналов для приложений третьей версии
+
+          - includes - позволяет включить в информацию о канале
+          - current_schedules - текущую передачу на канале
+
+        v.3 channel list with current schedules on demand
+        Method should return info about every channel that is available to user's provider
+      summary: Получение списка всех доступных каналов (v3)
+      parameters:
+      - in: query
+        name: channels_order
+        schema:
+          type: string
+          title: Order channels
+          minLength: 1
+      - in: query
+        name: channels_version
+        schema:
+          type: integer
+          default: 1
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - dune_plugin
+          - json
+          - xml
+      - in: query
+        name: includes
+        schema:
+          type: string
+          minLength: 1
+      - in: query
+        name: limit
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          title: Лимит
+      - in: query
+        name: offset
+        schema:
+          type: integer
+          minimum: 0
+      - in: query
+        name: order
+        schema:
+          type: string
+          title: Order field
+          minLength: 1
+      - in: query
+        name: search
+        schema:
+          type: string
+          title: Search string
+          minLength: 1
+      tags:
+      - channels
+      security:
+      - userAccessTokenHeader: []
+      - userAccessToken: []
+      - providerTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ChannelListChannel'
+            application/xml:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ChannelListChannel'
+          description: ''
+  /v2/channels/free_list:
+    get:
+      operationId: channels_free_list_list
+      description: |-
+        Метод выводит список всех бесплатных каналов.
+
+        В поле is_free уточняется доступность канала бесплатно для провайдера,
+        которому принадлежит текущий пользователь
+      summary: Получение списка бесплатных каналов
+      parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - dune_plugin
+          - json
+          - xml
+      tags:
+      - channels
+      security:
+      - userAccessTokenHeader: []
+      - userAccessToken: []
+      - providerTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ChannelListChannel'
+            application/xml:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ChannelListChannel'
+          description: ''
+  /v2/devices:
+    get:
+      operationId: devices_list
+      description: Получение списка устройств провайдера
+      summary: Получение списка устройств провайдера
+      parameters:
+      - in: query
+        name: created_after
+        schema:
+          type: string
+          format: date-time
+          title: Создано после (dd.mm.yyyy)
+      - in: query
+        name: created_before
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: device_type
+        schema:
+          type: string
+          minLength: 1
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - dune_plugin
+          - json
+          - xml
+      - in: query
+        name: interface_mac
+        schema:
+          type: string
+          minLength: 1
+      - in: query
+        name: limit
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          title: Лимит
+      - in: query
+        name: login_after
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: login_before
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: offset
+        schema:
+          type: integer
+          minimum: 0
+      - in: query
+        name: provider_uid
+        schema:
+          type: string
+          title: Идентификатор провайдера uid
+          minLength: 1
+      - in: query
+        name: serial
+        schema:
+          type: string
+          title: Серийный номер
+          minLength: 1
+      tags:
+      - devices
+      security:
+      - providerTokenAuthentication: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Device'
+            application/xml:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Device'
+          description: ''
+    post:
+      operationId: devices_create
+      description: Создание устройства.
+      summary: Создание устройства
+      parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - dune_plugin
+          - json
+          - xml
+      tags:
+      - devices
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Device'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Device'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Device'
+        required: true
+      security:
+      - providerTokenAuthentication: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Device'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/Device'
+          description: ''
+  /v2/packets:
+    get:
+      operationId: packets_list
+      description: |-
+        Получение списка доступных пакетов.
+
+        Параметры:
+          - includes - позволяет включить в информацию о пакете дополнительные параметры
+            - channels - каналы в данном пакете
+            - videos - все источники видео в данном пакете
+            - availables - все дополнительные пакеты доступные для подключения в этом пакете
+            - includes - все пакеты уже включенные в этот пакет
+      summary: Получение списка доступных пакетов
+      parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - dune_plugin
+          - json
+          - xml
+      - in: query
+        name: includes
+        schema:
+          type: string
+          minLength: 1
+      tags:
+      - packets
+      security:
+      - userAccessTokenHeader: []
+      - userAccessToken: []
+      - providerTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Packet'
+            application/xml:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Packet'
+          description: ''
+  /v2/packets/{id}:
+    get:
+      operationId: packets_retrieve
+      description: Получение подробной информации по доступному пакету
+      summary: Получение информации по пакету
+      parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - dune_plugin
+          - json
+          - xml
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this packet.
+        required: true
+      tags:
+      - packets
+      security:
+      - userAccessTokenHeader: []
+      - userAccessToken: []
+      - providerTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Packet'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/Packet'
+          description: ''
+  /v2/packets/{id}/purchaseperiods:
+    get:
+      operationId: packets_purchaseperiods_list
+      description: Получение списка доступных покупок для пакета сгруппированных по
+        периоду действия
+      summary: Получение списка доступных покупок для пакета сгруппированных по периоду
+        действия
+      parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - dune_plugin
+          - json
+          - xml
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this packet.
+        required: true
+      tags:
+      - packets
+      security:
+      - userAccessTokenHeader: []
+      - userAccessToken: []
+      - providerTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PeriodPurchaseType'
+            application/xml:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PeriodPurchaseType'
+          description: ''
+  /v2/packets/{id}/purchases:
+    get:
+      operationId: packets_purchases_list
+      description: Получение списка доступных покупок для пакета
+      summary: Получение списка доступных покупок для пакета
+      parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - dune_plugin
+          - json
+          - xml
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this packet.
+        required: true
+      tags:
+      - packets
+      security:
+      - userAccessTokenHeader: []
+      - userAccessToken: []
+      - providerTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PurchaseType'
+            application/xml:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PurchaseType'
+          description: ''
+  /v2/packets/flat:
+    get:
+      operationId: packets_flat_list
+      description: Метод позволяет получить список доступных пакетов в сокращённом
+        виде.
+      summary: Получение списка доступных пакетов (сокращённый вид)
+      parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - dune_plugin
+          - json
+          - xml
+      - in: query
+        name: includes
+        schema:
+          type: string
+          minLength: 1
+      tags:
+      - packets
+      security:
+      - userAccessTokenHeader: []
+      - userAccessToken: []
+      - providerTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FlatPacket'
+            application/xml:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FlatPacket'
+          description: ''
+  /v2/paymentsources:
+    get:
+      operationId: paymentsources_list
+      description: Получение платежных источников.
+      summary: Получение платежных источников
+      parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - dune_plugin
+          - json
+          - xml
+      tags:
+      - paymentsources
+      security:
+      - providerTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PaymentSource'
+            application/xml:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PaymentSource'
+          description: ''
+  /v2/promokeys/{id}:
+    delete:
+      operationId: promokeys_destroy
+      description: Деактивация активного промо-ключа
+      summary: Деактивация активного промо-ключа
+      parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - dune_plugin
+          - json
+          - xml
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - promokeys
+      security:
+      - providerTokenAuthentication: []
+      responses:
+        '204':
+          description: No response body
+  /v2/promopackets:
+    get:
+      operationId: promopackets_list
+      description: List promo packets.
+      parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - dune_plugin
+          - json
+          - xml
+      - in: query
+        name: includes
+        schema:
+          type: string
+          minLength: 1
+      tags:
+      - packets
+      security:
+      - providerTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Packet'
+            application/xml:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Packet'
+          description: ''
+  /v2/promopackets/{id}:
+    get:
+      operationId: promopackets_retrieve
+      description: Promo packets view set.
+      parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - dune_plugin
+          - json
+          - xml
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - packets
+      security:
+      - providerTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Packet'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/Packet'
+          description: ''
+  /v2/provider.swagger.yaml:
+    get:
+      operationId: provider.swagger.yaml_retrieve
+      description: |-
+        OpenApi3 schema for this API. Format can be selected via content negotiation.
+
+        - YAML: application/vnd.oai.openapi
+        - JSON: application/vnd.oai.openapi+json
+      parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - json
+          - yaml
+      - in: query
+        name: lang
+        schema:
+          type: string
+          enum:
+          - ru-ru
+      tags:
+      - provider.swagger.yaml
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/vnd.oai.openapi:
+              schema:
+                type: object
+                additionalProperties: {}
+            application/yaml:
+              schema:
+                type: object
+                additionalProperties: {}
+            application/vnd.oai.openapi+json:
+              schema:
+                type: object
+                additionalProperties: {}
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /v2/tags:
+    get:
+      operationId: tags_list
+      description: Данный метод используется для получения списка тегов (групп для
+        пользователей).
+      summary: Получение списка тегов
+      parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - dune_plugin
+          - json
+          - xml
+      - in: query
+        name: name
+        schema:
+          type: string
+          title: Get by name
+          minLength: 1
+      - in: query
+        name: search
+        schema:
+          type: string
+          title: Search string
+          minLength: 1
+      - in: query
+        name: shortname
+        schema:
+          type: string
+          title: Search by shortname
+          minLength: 1
+      tags:
+      - tags
+      security:
+      - providerTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Tags'
+            application/xml:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Tags'
+          description: ''
+    post:
+      operationId: tags_create
+      description: Данный метод используется для создания нового тега (группы для
+        пользователей)
+      summary: Создание нового тега (группы для пользователей)
+      parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - dune_plugin
+          - json
+          - xml
+      tags:
+      - tags
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Tags'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Tags'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Tags'
+      security:
+      - providerTokenAuthentication: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tags'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/Tags'
+          description: ''
+  /v2/tags/{id}:
+    get:
+      operationId: tags_retrieve
+      description: Метод возвращает данные тега по его идентификатору.
+      summary: Получение объекта тэга (группы для пользователей)
+      parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - dune_plugin
+          - json
+          - xml
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - tags
+      security:
+      - providerTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tags'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/Tags'
+          description: ''
+    patch:
+      operationId: tags_partial_update
+      description: |-
+        Метод позволяет изменить часть данных тега (группы для пользователей).
+
+        Возвращает измененные данные тега.
+      summary: Изменение данных тэга (группы для пользователей)
+      parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - dune_plugin
+          - json
+          - xml
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - tags
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedTags'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedTags'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedTags'
+      security:
+      - providerTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tags'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/Tags'
+          description: ''
+    delete:
+      operationId: tags_destroy
+      description: Метод удаляет тег.
+      summary: Удаление тэга (группы для пользователей)
+      parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - dune_plugin
+          - json
+          - xml
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - tags
+      security:
+      - providerTokenAuthentication: []
+      responses:
+        '204':
+          description: No response body
+  /v2/users:
+    get:
+      operationId: users_list
+      description: |-
+        Данный метод используется для получения списка пользователей.
+
+        Если указан параметр subscription, то к информации о пользователе добавляется список его
+        подписок с указанным subscriptions.
+
+        Параметр subscriptions принимает:
+          - all - все подписки
+          - current - текущие (с учетом стоящих на паузе)
+          - active - только активные (без учета стоящих на паузе)
+          - paused - только стоящих на паузе
+          - planned - только подключенные в будущем подписки (уже назначенные, не запланированные)
+          - period - подключенные за период с date_from по date_to
+
+        Если указан параметр all_providers, то ограничение происходит по провайдерам, доступным через модель
+        StaffAllowProviders
+      summary: Получение списка пользователей
+      parameters:
+      - in: query
+        name: date_from
+        schema:
+          type: string
+          format: date-time
+          title: 'Подписки с даты '
+      - in: query
+        name: date_to
+        schema:
+          type: string
+          format: date-time
+          title: Подписки по дату
+      - in: query
+        name: email
+        schema:
+          type: string
+          title: Get by email
+          minLength: 1
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - dune_plugin
+          - json
+          - xml
+      - in: query
+        name: limit
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          title: Лимит
+      - in: query
+        name: offset
+        schema:
+          type: integer
+          minimum: 0
+      - in: query
+        name: phone
+        schema:
+          type: string
+          title: Get by phone
+          minLength: 1
+      - in: query
+        name: provider_uid
+        schema:
+          type: string
+          title: Get by provider_uid
+          minLength: 1
+      - in: query
+        name: search
+        schema:
+          type: string
+          title: Search string
+          minLength: 1
+      - in: query
+        name: subscriptions
+        schema:
+          type: string
+          title: Подписки
+          minLength: 1
+      - in: query
+        name: tags
+        schema:
+          type: string
+          title: Users tags
+          minLength: 1
+      - in: query
+        name: username
+        schema:
+          type: string
+          title: Get by username
+          minLength: 1
+      tags:
+      - users
+      security:
+      - userAccessTokenHeader: []
+      - userAccessToken: []
+      - providerTokenAuthentication: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BaseUser'
+            application/xml:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BaseUser'
+          description: ''
+    post:
+      operationId: users_create
+      description: |-
+        Данный метод используется для регистрации нового пользователя.
+        В результате возвращается профиль созданного пользователя.
+      summary: Регистрация нового пользователя
+      parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - dune_plugin
+          - json
+          - xml
+      tags:
+      - users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BaseUser'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/BaseUser'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/BaseUser'
+      security:
+      - userAccessTokenHeader: []
+      - userAccessToken: []
+      - providerTokenAuthentication: []
+      - {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseUser'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/BaseUser'
+          description: ''
+  /v2/users/{id}:
+    get:
+      operationId: users_retrieve
+      description: Метод возвращает данные пользователя по его идентификатору.
+      summary: Получение данных о пользователе
+      parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - dune_plugin
+          - json
+          - xml
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+        explode: false
+        style: form
+      tags:
+      - users
+      security:
+      - userAccessTokenHeader: []
+      - userAccessToken: []
+      - providerTokenAuthentication: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseUser'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/BaseUser'
+          description: ''
+    patch:
+      operationId: users_partial_update
+      description: |-
+        Метод позволяет изменить часть пользовательских данных. И возвращает измененные данные пользователя.
+
+        При передаче поля password будет установлен новый пароль.
+        Если у пользователя установлен email или телефон (phone) и он провалидирован, то их можно изменить
+        через api только при передаче в запросе provider_token (token=...).
+      summary: Частичное изменение данных пользователя
+      parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - dune_plugin
+          - json
+          - xml
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+        explode: false
+        style: form
+      tags:
+      - users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedBaseUser'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedBaseUser'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedBaseUser'
+      security:
+      - userAccessTokenHeader: []
+      - userAccessToken: []
+      - providerTokenAuthentication: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseUser'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/BaseUser'
+          description: ''
+    delete:
+      operationId: users_destroy
+      description: Метод деактивирует пользователя после чего он не может войти в
+        приложение.
+      summary: Блокировка пользователя
+      parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - dune_plugin
+          - json
+          - xml
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+        explode: false
+        style: form
+      tags:
+      - users
+      security:
+      - userAccessTokenHeader: []
+      - userAccessToken: []
+      - providerTokenAuthentication: []
+      - {}
+      responses:
+        '204':
+          description: No response body
+  /v2/users/{id}/archive:
+    delete:
+      operationId: users_archive_destroy
+      description: Позволяет провайдеру архивировать пользователя.
+      summary: Архивирование пользователя
+      parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - dune_plugin
+          - json
+          - xml
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+        explode: false
+        style: form
+      tags:
+      - users
+      security:
+      - userAccessTokenHeader: []
+      - userAccessToken: []
+      - providerTokenAuthentication: []
+      - {}
+      responses:
+        '204':
+          description: No response body
+  /v2/users/{id}/devices:
+    get:
+      operationId: users_devices_list
+      description: Получение списка устройств пользователя
+      summary: Получение списка устройств пользователя
+      parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - dune_plugin
+          - json
+          - xml
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Абонент.
+        required: true
+      tags:
+      - users
+      security:
+      - providerTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Device'
+            application/xml:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Device'
+          description: ''
+  /v2/users/{user_id}/accounts:
+    get:
+      operationId: users_accounts_list
+      description: |-
+        Получение платежных аккаунтов пользователя.
+        Это было заложено в самом начале создания системы, что аккаунтов может быть много,
+        но мы используем только один и так как приложения уже завязаны на этот метод,
+        то возвращаем массив аккаунтов, но аккаунт будет один
+      summary: Получение платежных аккаунтов пользователя
+      parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - dune_plugin
+          - json
+          - xml
+      - in: path
+        name: user_id
+        schema:
+          type: string
+          pattern: ^[0-9]+$
+        required: true
+      tags:
+      - users
+      security:
+      - providerTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Account'
+            application/xml:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Account'
+          description: ''
+    post:
+      operationId: users_accounts_create
+      description: Создание платежного аккаунта пользователя.
+      summary: Создание платежного аккаунта пользователя
+      parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - dune_plugin
+          - json
+          - xml
+      - in: path
+        name: user_id
+        schema:
+          type: string
+          pattern: ^[0-9]+$
+        required: true
+      tags:
+      - users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Account'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Account'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Account'
+      security:
+      - providerTokenAuthentication: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Account'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/Account'
+          description: ''
+  /v2/users/{user_id}/accounts/{account_id}/transactions:
+    get:
+      operationId: users_accounts_transactions_list
+      description: Get user transactions.
+      parameters:
+      - in: path
+        name: account_id
+        schema:
+          type: string
+          pattern: ^[0-9]+$
+        required: true
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - dune_plugin
+          - json
+          - xml
+      - in: path
+        name: user_id
+        schema:
+          type: string
+          pattern: ^[0-9]+$
+        required: true
+      tags:
+      - users
+      security:
+      - providerTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Transaction'
+            application/xml:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Transaction'
+          description: ''
+    post:
+      operationId: users_accounts_transactions_create
+      description: Create user transaction.
+      parameters:
+      - in: path
+        name: account_id
+        schema:
+          type: string
+          pattern: ^[0-9]+$
+        required: true
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - dune_plugin
+          - json
+          - xml
+      - in: path
+        name: user_id
+        schema:
+          type: string
+          pattern: ^[0-9]+$
+        required: true
+      tags:
+      - users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Transaction'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Transaction'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Transaction'
+        required: true
+      security:
+      - providerTokenAuthentication: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Transaction'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/Transaction'
+          description: ''
+  /v2/users/{user_id}/change_provider/{id}:
+    put:
+      operationId: users_change_provider_update
+      description: Метод передает пользователя другому провайдеру
+      summary: Метод передает пользователя другому провайдеру
+      parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - dune_plugin
+          - json
+          - xml
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: user_id
+        schema:
+          type: string
+          pattern: ^[0-9]+$
+        required: true
+      tags:
+      - users
+      security:
+      - providerTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+  /v2/users/{user_id}/devices:
+    get:
+      operationId: users_devices_list_2
+      description: Получение списка устройств пользователя.
+      summary: Получение списка устройств пользователя
+      parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - dune_plugin
+          - json
+          - xml
+      - in: path
+        name: user_id
+        schema:
+          type: string
+          pattern: ^[0-9]+$
+        required: true
+      tags:
+      - users
+      security:
+      - providerTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Device'
+            application/xml:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Device'
+          description: ''
+  /v2/users/{user_id}/devices/{id}:
+    get:
+      operationId: users_devices_retrieve
+      description: Получение устройства пользователя по его идентификатору.
+      summary: Получение устройства пользователя
+      parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - dune_plugin
+          - json
+          - xml
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: user_id
+        schema:
+          type: string
+          pattern: ^[0-9]+$
+        required: true
+      tags:
+      - users
+      security:
+      - providerTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Device'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/Device'
+          description: ''
+    delete:
+      operationId: users_devices_destroy
+      description: Метод удаляет пользовательское устройство.
+      summary: Удаление устройства пользователя
+      parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - dune_plugin
+          - json
+          - xml
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: user_id
+        schema:
+          type: string
+          pattern: ^[0-9]+$
+        required: true
+      tags:
+      - users
+      security:
+      - providerTokenAuthentication: []
+      responses:
+        '204':
+          description: No response body
+  /v2/users/{user_id}/devices/device:
+    get:
+      operationId: users_devices_device_retrieve
+      description: Получение устройства пользователя по токену доступа.
+      summary: Получение устройства пользователя по токену
+      parameters:
+      - in: query
+        name: access_token
+        schema:
+          type: string
+        required: true
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - dune_plugin
+          - json
+          - xml
+      - in: path
+        name: user_id
+        schema:
+          type: string
+          pattern: ^[0-9]+$
+        required: true
+      tags:
+      - users
+      security:
+      - providerTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Device'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/Device'
+          description: ''
+  /v2/users/{user_id}/entity_licenses:
+    get:
+      operationId: users_entity_licenses_list
+      description: |-
+        Получение списка всех лицензий пользователя.
+
+        Можно передавать различные параметры фильтрации:
+          - user_id - id пользователя
+      summary: Метод для получения всех лицензий пользователя
+      parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - dune_plugin
+          - json
+          - xml
+      - in: path
+        name: user_id
+        schema:
+          type: string
+          pattern: ^[0-9]+$
+        required: true
+      tags:
+      - users
+      security:
+      - providerTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserEntityLicensesListCreate'
+            application/xml:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserEntityLicensesListCreate'
+          description: ''
+    post:
+      operationId: users_entity_licenses_create
+      description: |-
+        Добавление лицензий пользователя.
+
+        Можно передавать различные параметры фильтрации:
+          - user_id - id пользователя
+          - entity_license_id - Добавляемая лицензия
+      summary: Метод для добавления лицензий пользователя
+      parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - dune_plugin
+          - json
+          - xml
+      - in: path
+        name: user_id
+        schema:
+          type: string
+          pattern: ^[0-9]+$
+        required: true
+      tags:
+      - users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FilterEntityLicensesCreate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/FilterEntityLicensesCreate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/FilterEntityLicensesCreate'
+        required: true
+      security:
+      - providerTokenAuthentication: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserEntityLicensesListCreate'
+            application/xml:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserEntityLicensesListCreate'
+          description: ''
+  /v2/users/{user_id}/entity_licenses/{id}:
+    delete:
+      operationId: users_entity_licenses_destroy
+      description: |-
+        Удаление лицензий пользователя.
+
+        Можно передавать различные параметры фильтрации:
+          - user_id - id пользователя
+          - entity_license_id - Удаляемая лицензия
+      summary: Метод для удаления лицензий пользователя
+      parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - dune_plugin
+          - json
+          - xml
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this video.
+        required: true
+      - in: path
+        name: user_id
+        schema:
+          type: string
+          pattern: ^[0-9]+$
+        required: true
+      tags:
+      - users
+      security:
+      - providerTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserEntityLicensesListCreate'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/UserEntityLicensesListCreate'
+          description: ''
+  /v2/users/{user_id}/futures:
+    get:
+      operationId: users_futures_list
+      description: Получение списка будущих подписок на пакеты пользователя.
+      summary: Получение списка будущих подписок на пакеты пользователя
+      parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - dune_plugin
+          - json
+          - xml
+      - in: path
+        name: user_id
+        schema:
+          type: string
+          pattern: ^[0-9]+$
+        required: true
+      tags:
+      - users
+      security:
+      - providerTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PacketFutureSubscription'
+            application/xml:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PacketFutureSubscription'
+          description: ''
+  /v2/users/{user_id}/messages:
+    get:
+      operationId: users_messages_list
+      description: Получение списка новых сообщений пользователя.
+      summary: Получение списка новых сообщений пользователя
+      parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - dune_plugin
+          - json
+          - xml
+      - in: path
+        name: user_id
+        schema:
+          type: string
+          pattern: ^[0-9]+$
+        required: true
+      tags:
+      - messages
+      security:
+      - providerTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Message'
+            application/xml:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Message'
+          description: ''
+    post:
+      operationId: users_messages_create
+      description: Добавление нового сообщения пользователя.
+      summary: Добавление нового сообщения пользователя
+      parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - dune_plugin
+          - json
+          - xml
+      - in: path
+        name: user_id
+        schema:
+          type: string
+          pattern: ^[0-9]+$
+        required: true
+      tags:
+      - messages
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Message'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Message'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Message'
+        required: true
+      security:
+      - providerTokenAuthentication: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/Message'
+          description: ''
+  /v2/users/{user_id}/messages/{id}:
+    get:
+      operationId: users_messages_retrieve
+      description: Получение сообщения пользователя по его идентификатору.
+      summary: Получение сообщения пользователя
+      parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - dune_plugin
+          - json
+          - xml
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: user_id
+        schema:
+          type: string
+          pattern: ^[0-9]+$
+        required: true
+      tags:
+      - messages
+      security:
+      - providerTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/Message'
+          description: ''
+    delete:
+      operationId: users_messages_destroy
+      description: Метод удаляет пользовательское сообщение.
+      summary: Удаление пользовательского сообщения
+      parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - dune_plugin
+          - json
+          - xml
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: user_id
+        schema:
+          type: string
+          pattern: ^[0-9]+$
+        required: true
+      tags:
+      - messages
+      security:
+      - providerTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/Message'
+          description: ''
+  /v2/users/{user_id}/packets:
+    get:
+      operationId: users_packets_list
+      description: Получение списка персональных пользовательских пакетов.
+      summary: Получение списка пользовательских пакетов
+      parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - dune_plugin
+          - json
+          - xml
+      - in: path
+        name: user_id
+        schema:
+          type: string
+          pattern: ^[0-9]+$
+        required: true
+      tags:
+      - packets
+      security:
+      - providerTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserPacket'
+            application/xml:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserPacket'
+          description: ''
+    post:
+      operationId: users_packets_create
+      description: Добавление нового персонального пакета пользователю.
+      summary: Добавление нового персонального пакета пользователю
+      parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - dune_plugin
+          - json
+          - xml
+      - in: path
+        name: user_id
+        schema:
+          type: string
+          pattern: ^[0-9]+$
+        required: true
+      tags:
+      - packets
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserPacket'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UserPacket'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UserPacket'
+        required: true
+      security:
+      - providerTokenAuthentication: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserPacket'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/UserPacket'
+          description: ''
+  /v2/users/{user_id}/packets/{id}:
+    get:
+      operationId: users_packets_retrieve
+      description: Получение персонального пакета пользователю.
+      summary: Получение пакета пользователя
+      parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - dune_plugin
+          - json
+          - xml
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: user_id
+        schema:
+          type: string
+          pattern: ^[0-9]+$
+        required: true
+      tags:
+      - packets
+      security:
+      - providerTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserPacket'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/UserPacket'
+          description: ''
+    patch:
+      operationId: users_packets_partial_update
+      description: Изменение данных пользовательского пакета.
+      summary: Изменение данных пользовательского пакета
+      parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - dune_plugin
+          - json
+          - xml
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: user_id
+        schema:
+          type: string
+          pattern: ^[0-9]+$
+        required: true
+      tags:
+      - packets
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedUserShortPacket'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedUserShortPacket'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedUserShortPacket'
+      security:
+      - providerTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserPacket'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/UserPacket'
+          description: ''
+    delete:
+      operationId: users_packets_destroy
+      description: Метод удаляет пакет пользователя.
+      summary: Удаление пользовательского пакета
+      parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - dune_plugin
+          - json
+          - xml
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: user_id
+        schema:
+          type: string
+          pattern: ^[0-9]+$
+        required: true
+      tags:
+      - packets
+      security:
+      - providerTokenAuthentication: []
+      responses:
+        '204':
+          description: No response body
+  /v2/users/{user_id}/pauses:
+    get:
+      operationId: users_pauses_list
+      description: Получение списка пауз подписок пользователя.
+      summary: Получение списка пауз подписок пользователя
+      parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - dune_plugin
+          - json
+          - xml
+      - in: path
+        name: user_id
+        schema:
+          type: string
+          pattern: ^[0-9]+$
+        required: true
+      tags:
+      - users
+      security:
+      - providerTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PacketSubscriptionPause'
+            application/xml:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PacketSubscriptionPause'
+          description: ''
+    post:
+      operationId: users_pauses_create
+      description: Постановка подписок пользователя на паузу.
+      summary: Постановка подписок пользователя на паузу
+      parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - dune_plugin
+          - json
+          - xml
+      - in: path
+        name: user_id
+        schema:
+          type: string
+          pattern: ^[0-9]+$
+        required: true
+      tags:
+      - users
+      security:
+      - providerTokenAuthentication: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PacketSubscriptionPause'
+            application/xml:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PacketSubscriptionPause'
+          description: ''
+  /v2/users/{user_id}/pauses/delete:
+    delete:
+      operationId: users_pauses_delete_destroy
+      description: Снятие с пауз всех подписок, когда это возможно.
+      summary: Снятие с пауз всех подписок пользователя
+      parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - dune_plugin
+          - json
+          - xml
+      - in: path
+        name: user_id
+        schema:
+          type: string
+          pattern: ^[0-9]+$
+        required: true
+      tags:
+      - users
+      security:
+      - providerTokenAuthentication: []
+      responses:
+        '204':
+          description: No response body
+  /v2/users/{user_id}/promokeys:
+    get:
+      operationId: users_promokeys_list
+      description: Получить список активированных пользователем промо-ключей.
+      summary: Получить список активированных пользователем промо-ключей
+      parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - dune_plugin
+          - json
+          - xml
+      - in: path
+        name: user_id
+        schema:
+          type: string
+          pattern: ^[0-9]+$
+        required: true
+      tags:
+      - promokeys
+      security:
+      - providerTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserPromoKey'
+            application/xml:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserPromoKey'
+          description: ''
+    post:
+      operationId: users_promokeys_create
+      description: Активация пользовательского промо ключа
+      summary: Активация пользовательского промо-ключа
+      parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - dune_plugin
+          - json
+          - xml
+      - in: path
+        name: user_id
+        schema:
+          type: string
+          pattern: ^[0-9]+$
+        required: true
+      tags:
+      - promokeys
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserPromoKey'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UserPromoKey'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UserPromoKey'
+        required: true
+      security:
+      - providerTokenAuthentication: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserPromoKey'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/UserPromoKey'
+          description: ''
+  /v2/users/{user_id}/provider/account:
+    get:
+      operationId: users_provider_account_list
+      description: Получение платежного аккаунта провайдера.
+      summary: Получение платежного аккаунта провайдера
+      parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - dune_plugin
+          - json
+          - xml
+      - in: path
+        name: user_id
+        schema:
+          type: string
+          pattern: ^[0-9]+$
+        required: true
+      tags:
+      - users
+      security:
+      - providerTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SourceAccount'
+            application/xml:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SourceAccount'
+          description: ''
+    post:
+      operationId: users_provider_account_create
+      description: Создание платежного аккаунта пользователя.
+      summary: Создание платежного аккаунта пользователя
+      parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - dune_plugin
+          - json
+          - xml
+      - in: path
+        name: user_id
+        schema:
+          type: string
+          pattern: ^[0-9]+$
+        required: true
+      tags:
+      - users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SourceAccount'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SourceAccount'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SourceAccount'
+        required: true
+      security:
+      - providerTokenAuthentication: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SourceAccount'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/SourceAccount'
+          description: ''
+  /v2/users/{user_id}/provider/accounts:
+    get:
+      operationId: users_provider_accounts_list
+      description: Получение платежных аккаунтов провайдера
+      summary: Получение платежных аккаунтов провайдера
+      parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - dune_plugin
+          - json
+          - xml
+      - in: path
+        name: user_id
+        schema:
+          type: string
+          pattern: ^[0-9]+$
+        required: true
+      tags:
+      - users
+      security:
+      - providerTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SourceAccount'
+            application/xml:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SourceAccount'
+          description: ''
+    post:
+      operationId: users_provider_accounts_create
+      description: Создание платежного аккаунта пользователя.
+      summary: Создание платежного аккаунта пользователя
+      parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - dune_plugin
+          - json
+          - xml
+      - in: path
+        name: user_id
+        schema:
+          type: string
+          pattern: ^[0-9]+$
+        required: true
+      tags:
+      - users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/SourceAccount'
+          application/x-www-form-urlencoded:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/SourceAccount'
+          multipart/form-data:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/SourceAccount'
+        required: true
+      security:
+      - providerTokenAuthentication: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SourceAccount'
+            application/xml:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SourceAccount'
+          description: ''
+  /v2/users/{user_id}/subscriptions:
+    get:
+      operationId: users_subscriptions_list
+      description: |-
+        Получение списка подписок на пакеты пользователя
+
+        Параметры:
+          - includes - позволяет включить в информацию о подписках дополнительные параметры
+            - packet.channels - каналы в пакете подписки
+            - packet.videos - все источники видео пакете подписки
+            - packet.available - разрешенные для подключения дополнительные пакеты
+            - packet.includes - включенные в пакет дополнительные пакеты
+          - types - фильтр подписок
+            - active - выводить только активные (без учета стоящих на паузе)
+            - current - выводить текущие подписки (c учетом подписок на паузе)
+            - paused - выводить подписки на паузе
+            - planned - выводить только подключенные в будущем подписки (уже назначенные, не запланированные)
+          - packet_ids - вывод подписок по списку id пакетов
+      summary: Получение списка подписок на пакеты пользователя
+      parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - dune_plugin
+          - json
+          - xml
+      - in: query
+        name: includes
+        schema:
+          type: string
+          minLength: 1
+      - in: query
+        name: packet_ids
+        schema:
+          type: string
+          title: Packets ids
+          minLength: 1
+      - in: query
+        name: types
+        schema:
+          type: string
+          minLength: 1
+      - in: path
+        name: user_id
+        schema:
+          type: string
+          pattern: ^[0-9]+$
+        required: true
+      - in: query
+        name: version
+        schema:
+          type: string
+          title: Версия
+          minLength: 1
+      tags:
+      - users
+      security:
+      - providerTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PacketSubscription'
+            application/xml:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PacketSubscription'
+          description: ''
+    post:
+      operationId: users_subscriptions_create
+      description: Создание новых подписок на пакет каналов для пользователя
+      summary: Создание новой подписки на пакет каналов
+      parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - dune_plugin
+          - json
+          - xml
+      - in: path
+        name: user_id
+        schema:
+          type: string
+          pattern: ^[0-9]+$
+        required: true
+      tags:
+      - users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/ProviderPacketSubscription'
+          application/x-www-form-urlencoded:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/ProviderPacketSubscription'
+          multipart/form-data:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/ProviderPacketSubscription'
+        required: true
+      security:
+      - providerTokenAuthentication: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ProviderPacketSubscription'
+            application/xml:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ProviderPacketSubscription'
+          description: ''
+  /v2/users/{user_id}/subscriptions/{id}:
+    get:
+      operationId: users_subscriptions_retrieve
+      description: |-
+        Получение подписки пользователя по её идентификатору
+
+        Параметры:
+          - includes - позволяет включить в информацию о подписках дополнительные параметры
+            - packet.channels - каналы в пакете подписки
+            - packet.videos - все источники видео пакете подписки
+            - packet.available - разрешенные для подключения дополнительные пакеты
+            - packet.includes - включенные в пакет дополнительные пакеты
+      summary: Получение подписки пользователя
+      parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - dune_plugin
+          - json
+          - xml
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: user_id
+        schema:
+          type: string
+          pattern: ^[0-9]+$
+        required: true
+      tags:
+      - users
+      security:
+      - providerTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PacketSubscription'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/PacketSubscription'
+          description: ''
+    patch:
+      operationId: users_subscriptions_partial_update
+      description: |-
+        Метод позволяет изменить часть данных подписки.
+
+        Возвращает измененные данные подписки пользователя.
+        Например, можно изменить параметр автопролонгации.
+      summary: Изменение данных подписки пользователя
+      parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - dune_plugin
+          - json
+          - xml
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: user_id
+        schema:
+          type: string
+          pattern: ^[0-9]+$
+        required: true
+      tags:
+      - users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedPacketSubscription'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedPacketSubscription'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedPacketSubscription'
+      security:
+      - providerTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PacketSubscription'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/PacketSubscription'
+          description: ''
+    delete:
+      operationId: users_subscriptions_destroy
+      description: Метод завершает пользовательскую подписку когда это возможно.
+      summary: Завершение подписки пользователя
+      parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - dune_plugin
+          - json
+          - xml
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: user_id
+        schema:
+          type: string
+          pattern: ^[0-9]+$
+        required: true
+      tags:
+      - users
+      security:
+      - providerTokenAuthentication: []
+      responses:
+        '204':
+          description: No response body
+  /v2/users/{user_id}/subscriptions/{subscription_id}/pauses:
+    get:
+      operationId: users_subscriptions_pauses_list
+      description: Получение списка пауз подписки пользователя.
+      summary: Получение списка пауз подписки пользователя
+      parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - dune_plugin
+          - json
+          - xml
+      - in: path
+        name: subscription_id
+        schema:
+          type: string
+          pattern: ^[0-9]+$
+        required: true
+      - in: path
+        name: user_id
+        schema:
+          type: string
+          pattern: ^[0-9]+$
+        required: true
+      tags:
+      - users
+      security:
+      - providerTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PacketSubscriptionPause'
+            application/xml:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PacketSubscriptionPause'
+          description: ''
+    post:
+      operationId: users_subscriptions_pauses_create
+      description: Постановка подписки пользователя на паузу.
+      summary: Постановка подписки пользователя на паузу
+      parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - dune_plugin
+          - json
+          - xml
+      - in: path
+        name: subscription_id
+        schema:
+          type: string
+          pattern: ^[0-9]+$
+        required: true
+      - in: path
+        name: user_id
+        schema:
+          type: string
+          pattern: ^[0-9]+$
+        required: true
+      tags:
+      - users
+      security:
+      - providerTokenAuthentication: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PacketSubscriptionPause'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/PacketSubscriptionPause'
+          description: ''
+  /v2/users/{user_id}/subscriptions/{subscription_id}/pauses/{pause_id}:
+    patch:
+      operationId: users_subscriptions_pauses_partial_update
+      description: Обновление времени окончания паузы подписки.
+      summary: Обновление времени окончания паузы
+      parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - dune_plugin
+          - json
+          - xml
+      - in: path
+        name: pause_id
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: subscription_id
+        schema:
+          type: string
+          pattern: ^[0-9]+$
+        required: true
+      - in: path
+        name: user_id
+        schema:
+          type: string
+          pattern: ^[0-9]+$
+        required: true
+      tags:
+      - users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedPacketSubscriptionPauseUpdate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedPacketSubscriptionPauseUpdate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedPacketSubscriptionPauseUpdate'
+      security:
+      - providerTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PacketSubscriptionPause'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/PacketSubscriptionPause'
+          description: ''
+    delete:
+      operationId: users_subscriptions_pauses_destroy
+      description: Метод снимает с паузы пользовательскую подписку когда это возможно.
+      summary: Снятие с паузы пользовательской подписки
+      parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - dune_plugin
+          - json
+          - xml
+      - in: path
+        name: pause_id
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: subscription_id
+        schema:
+          type: string
+          pattern: ^[0-9]+$
+        required: true
+      - in: path
+        name: user_id
+        schema:
+          type: string
+          pattern: ^[0-9]+$
+        required: true
+      tags:
+      - users
+      security:
+      - providerTokenAuthentication: []
+      responses:
+        '204':
+          description: No response body
+  /v2/users/{user_id}/subscriptions/current:
+    get:
+      operationId: users_subscriptions_current_retrieve
+      description: |-
+        Получение списка текущих подписок пользователя (c учетом подписок на паузе).
+
+        Параметры:
+
+          - includes - позволяет включить в информацию о подписках дополнительные параметры
+            - packet.channels - каналы в пакете подписки
+            - packet.videos - все источники видео пакете подписки
+            - packet.available - разрешенные для подключения дополнительные пакеты
+            - packet.includes - включенные в пакет дополнительные пакеты
+      summary: Получение списка текущих подписок пользователя
+      parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - dune_plugin
+          - json
+          - xml
+      - in: path
+        name: user_id
+        schema:
+          type: string
+          pattern: ^[0-9]+$
+        required: true
+      tags:
+      - users
+      security:
+      - providerTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PacketSubscription'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/PacketSubscription'
+          description: ''
+  /v2/users/{user_id}/tags:
+    post:
+      operationId: users_tags_create
+      description: Добавление тега к пользователю.
+      summary: Добавление тега к пользователю
+      parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - dune_plugin
+          - json
+          - xml
+      - in: path
+        name: user_id
+        schema:
+          type: string
+          pattern: ^[0-9]+$
+        required: true
+      tags:
+      - users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserTags'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UserTags'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UserTags'
+      security:
+      - providerTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+  /v2/users/{user_id}/tags/{id}:
+    delete:
+      operationId: users_tags_destroy
+      description: Метод удаляет пользовательский тег.
+      summary: Удаление тега пользователя
+      parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - dune_plugin
+          - json
+          - xml
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: user_id
+        schema:
+          type: string
+          pattern: ^[0-9]+$
+        required: true
+      tags:
+      - users
+      security:
+      - providerTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+  /v2/users/self/channel_list:
+    get:
+      operationId: users_self_channel_list_list
+      description: |-
+        Получение списка атрибутов пользовательских каналов.
+
+        v.3 user channel attributes list
+        Method should return info about every channel that is available to user's provider
+      summary: Получение списка атрибутов пользовательских каналов (v3)
+      parameters:
+      - in: query
+        name: channels_order
+        schema:
+          type: string
+          title: Order channels
+          minLength: 1
+      - in: query
+        name: channels_version
+        schema:
+          type: integer
+          default: 1
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - dune_plugin
+          - json
+          - xml
+      - in: query
+        name: includes
+        schema:
+          type: string
+          minLength: 1
+      - in: query
+        name: limit
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          title: Лимит
+      - in: query
+        name: offset
+        schema:
+          type: integer
+          minimum: 0
+      - in: query
+        name: order
+        schema:
+          type: string
+          title: Order field
+          minLength: 1
+      - in: query
+        name: search
+        schema:
+          type: string
+          title: Search string
+          minLength: 1
+      tags:
+      - users
+      security:
+      - userAccessTokenHeader: []
+      - userAccessToken: []
+      - providerTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserChannel'
+            application/xml:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserChannel'
+          description: ''
+  /v2/users/self/channels:
+    get:
+      operationId: users_self_channels_list
+      description: |-
+        Получение списка всех доступных каналов.
+
+        Параметры:
+          - includes - позволяет включить в информацию о канале
+              - images.blackback - логотипы для черного фона
+              - images.whiteback - логотипы для белого фона
+      summary: Получение списка всех доступных каналов
+      parameters:
+      - in: query
+        name: channels_order
+        schema:
+          type: string
+          title: Order channels
+          minLength: 1
+      - in: query
+        name: channels_version
+        schema:
+          type: integer
+          default: 1
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - json
+          - xml
+      - in: query
+        name: includes
+        schema:
+          type: string
+          minLength: 1
+      - in: query
+        name: limit
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          title: Лимит
+      - in: query
+        name: offset
+        schema:
+          type: integer
+          minimum: 0
+      - in: query
+        name: order
+        schema:
+          type: string
+          title: Order field
+          minLength: 1
+      - in: query
+        name: search
+        schema:
+          type: string
+          title: Search string
+          minLength: 1
+      tags:
+      - users
+      security:
+      - userAccessTokenHeader: []
+      - userAccessToken: []
+      - providerTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ChannelListV2'
+            application/xml:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ChannelListV2'
+          description: ''
+components:
+  schemas:
+    Account:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+          title: ID аккаунта
+        amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          title: Стоимость
+        is_payment_allowed:
+          type: boolean
+          readOnly: true
+          title: платеж разрешен
+      required:
+      - id
+      - is_payment_allowed
+    AudioStream:
+      type: object
+      properties:
+        codec:
+          type: string
+          title: Кодек
+        language:
+          type: string
+          title: Язык
+        bitrate:
+          type: integer
+          title: Битрейт
+      required:
+      - bitrate
+      - codec
+      - language
+    AuthorizedDevice:
+      type: object
+      properties:
+        device_type:
+          type: string
+      required:
+      - device_type
+    AuthorizedNetwork:
+      type: object
+      properties:
+        network:
+          type: string
+      required:
+      - network
+    AuthorizedPacket:
+      type: object
+      properties:
+        packet_id:
+          type: string
+          readOnly: true
+        name:
+          type: string
+          title: packet name
+      required:
+      - name
+      - packet_id
+    AuthorizedProviderNetwork:
+      type: object
+      properties:
+        name:
+          type: string
+          title: имя провайдера
+      required:
+      - name
+    BaseUser:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        username:
+          type: string
+          title: Имя пользователя
+          maxLength: 40
+        first_name:
+          type: string
+          title: Имя
+          maxLength: 64
+        last_name:
+          type: string
+          title: Фамилия
+          maxLength: 64
+        provider_uid:
+          type: string
+          title: Идентификатор пользователя у провайдера
+          maxLength: 255
+        parental_code:
+          type: string
+          readOnly: true
+          title: Parents code
+        parental_status:
+          type: string
+          readOnly: true
+          title: Parents status
+        phone:
+          type: string
+          title: Телефон
+          maxLength: 32
+        email:
+          type: string
+          format: email
+        timezone:
+          type: string
+          title: Часовой пояс
+          maxLength: 64
+        timezone_utcoffset:
+          type: integer
+          readOnly: true
+          title: Timezone offset
+        password:
+          type: string
+          writeOnly: true
+          title: Пароль
+          maxLength: 32
+        pincode:
+          type: string
+          writeOnly: true
+          maxLength: 4
+        device_limit:
+          type: integer
+          title: Лимит устройств
+          minimum: 0
+          maximum: 100
+        accounts:
+          type: array
+          items:
+            $ref: '#/components/schemas/Account'
+          readOnly: true
+        sources:
+          type: array
+          items:
+            $ref: '#/components/schemas/SourceAccount'
+        provider:
+          allOf:
+          - $ref: '#/components/schemas/Provider'
+          readOnly: true
+        is_provider_free:
+          type: boolean
+          readOnly: true
+        is_active:
+          type: boolean
+        is_testuser:
+          type: boolean
+          readOnly: true
+        is_self_deletion_allowed:
+          type: string
+          readOnly: true
+        is_validated:
+          type: boolean
+        is_guest:
+          type: boolean
+        last_login:
+          type: string
+          format: date-time
+          nullable: true
+        date_joined:
+          type: string
+          format: date-time
+          nullable: true
+        tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/Tags'
+          readOnly: true
+          title: Users tags
+        subscriptions:
+          type: string
+          readOnly: true
+        app_version:
+          type: string
+          maxLength: 16
+        refer_id:
+          type: string
+          maxLength: 256
+        smartpay_id:
+          type: string
+          maxLength: 256
+        parental_dialogue:
+          type: string
+          readOnly: true
+        comment:
+          type: string
+          maxLength: 256
+        unaccepted_agreement_ids:
+          type: string
+          readOnly: true
+        is_geofree:
+          type: boolean
+          readOnly: true
+      required:
+      - accounts
+      - id
+      - is_geofree
+      - is_provider_free
+      - is_self_deletion_allowed
+      - is_testuser
+      - parental_code
+      - parental_dialogue
+      - parental_status
+      - provider
+      - subscriptions
+      - tags
+      - timezone_utcoffset
+      - unaccepted_agreement_ids
+    Benefit:
+      type: object
+      properties:
+        text:
+          type: string
+          readOnly: true
+        icon:
+          type: string
+          format: uri
+      required:
+      - icon
+      - text
+    BillingPaySystem:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+          title: ID аккаунта
+        version:
+          type: string
+          title: Версия
+        title:
+          type: string
+          title: Имя
+      required:
+      - id
+      - title
+      - version
+    Category:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+          maxLength: 100
+        icon:
+          type: string
+          format: uri
+        age:
+          type: integer
+        images:
+          type: array
+          items:
+            $ref: '#/components/schemas/CategoryImage'
+        channels:
+          type: array
+          items:
+            $ref: '#/components/schemas/Channel'
+          readOnly: true
+      required:
+      - age
+      - channels
+      - icon
+      - id
+      - name
+    CategoryImage:
+      type: object
+      properties:
+        itype:
+          type: string
+          maxLength: 100
+        src:
+          type: string
+          format: uri
+      required:
+      - itype
+      - src
+    CategoryList:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+          maxLength: 100
+        short:
+          type: string
+          maxLength: 100
+        scaled_icon:
+          $ref: '#/components/schemas/ScaledImage'
+        channels:
+          type: array
+          items: {}
+        tags:
+          type: object
+          additionalProperties: {}
+        slug:
+          type: string
+          maxLength: 64
+      required:
+      - channels
+      - id
+      - name
+      - scaled_icon
+      - tags
+    Channel:
+      type: object
+      properties:
+        id:
+          type: integer
+        parent_id:
+          type: integer
+        name:
+          type: string
+          maxLength: 100
+        slug:
+          type: string
+          pattern: ^[-a-zA-Z0-9_]+$
+        num:
+          type: integer
+          readOnly: true
+        icon:
+          type: string
+          nullable: true
+          readOnly: true
+        hd:
+          type: boolean
+          readOnly: true
+        is_hd:
+          type: boolean
+        is_4k:
+          type: boolean
+          default: false
+        archived_days:
+          type: integer
+        real_archived_days:
+          type: integer
+          readOnly: true
+        cover:
+          type: object
+          additionalProperties: {}
+          readOnly: true
+        stream_types:
+          type: object
+          additionalProperties: {}
+          nullable: true
+          readOnly: true
+        future_days:
+          type: integer
+          readOnly: true
+          default: 2
+        age:
+          type: integer
+        ar:
+          type: string
+        favorite:
+          allOf:
+          - $ref: '#/components/schemas/ShortUserFavorite'
+          readOnly: true
+        screen_url:
+          type: string
+        screen:
+          type: string
+        schedule:
+          $ref: '#/components/schemas/Schedule'
+        current_schedule:
+          $ref: '#/components/schemas/Schedule'
+        video_streams:
+          type: array
+          items:
+            $ref: '#/components/schemas/VideoVideoStream'
+        audio_streams:
+          type: array
+          items:
+            $ref: '#/components/schemas/VideoAudioStream'
+        trackers:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChannelTracker'
+        access:
+          $ref: '#/components/schemas/ChannelAccess'
+        is_available:
+          type: boolean
+        access_errors:
+          type: array
+          items:
+            type: string
+        access_error:
+          type: string
+        is_favored:
+          type: boolean
+          readOnly: true
+        is_hidden:
+          type: boolean
+          readOnly: true
+        is_purchased:
+          type: boolean
+          readOnly: true
+        is_free:
+          type: boolean
+          readOnly: true
+        overflow_icon:
+          $ref: '#/components/schemas/ScaledImage'
+        motion_rating_id:
+          type: integer
+          nullable: true
+          readOnly: true
+      required:
+      - age
+      - ar
+      - archived_days
+      - cover
+      - favorite
+      - future_days
+      - hd
+      - icon
+      - id
+      - is_favored
+      - is_free
+      - is_hd
+      - is_hidden
+      - is_purchased
+      - motion_rating_id
+      - name
+      - num
+      - real_archived_days
+      - stream_types
+    ChannelAccess:
+      type: object
+      properties:
+        packets:
+          type: array
+          items:
+            $ref: '#/components/schemas/AuthorizedPacket'
+        devices:
+          type: array
+          items:
+            $ref: '#/components/schemas/AuthorizedDevice'
+        networks:
+          type: array
+          items:
+            $ref: '#/components/schemas/AuthorizedNetwork'
+        provider_networks:
+          type: array
+          items:
+            $ref: '#/components/schemas/AuthorizedProviderNetwork'
+    ChannelListChannel:
+      type: object
+      properties:
+        id:
+          type: integer
+        parent_id:
+          type: integer
+        name:
+          type: string
+          readOnly: true
+        slug:
+          type: string
+          maxLength: 255
+          pattern: ^[-a-zA-Z0-9_]+$
+        description:
+          type: string
+        num:
+          type: integer
+          nullable: true
+        is_hd:
+          type: boolean
+        is_4k:
+          type: boolean
+          default: false
+        aspect_ratio:
+          type: string
+        version:
+          type: string
+        rating_age:
+          type: integer
+        motion_rating_id:
+          type: integer
+          nullable: true
+          readOnly: true
+        age:
+          type: integer
+        cover:
+          type: object
+          additionalProperties: {}
+          readOnly: true
+        current_schedule:
+          $ref: '#/components/schemas/ChannelListSchedule'
+        archived_days:
+          type: integer
+        is_free:
+          type: boolean
+          readOnly: true
+        stream_types:
+          type: object
+          additionalProperties: {}
+          nullable: true
+          readOnly: true
+        future_days:
+          type: integer
+          readOnly: true
+          default: 2
+      required:
+      - age
+      - aspect_ratio
+      - cover
+      - future_days
+      - id
+      - is_free
+      - is_hd
+      - motion_rating_id
+      - name
+      - rating_age
+      - slug
+      - stream_types
+      - version
+    ChannelListSchedule:
+      type: object
+      properties:
+        id:
+          type: string
+          readOnly: true
+        time:
+          type: string
+          format: time
+          readOnly: true
+        date:
+          type: string
+          format: date
+          readOnly: true
+        channel_id:
+          type: integer
+        channel:
+          $ref: '#/components/schemas/ShortChannel'
+        timestamp:
+          type: string
+          format: date-time
+          readOnly: true
+        real_timestamp:
+          type: string
+          format: date-time
+          readOnly: true
+        duration:
+          type: integer
+        real_duration:
+          type: integer
+        content:
+          $ref: '#/components/schemas/NanoContentSchedule'
+      required:
+      - channel_id
+      - content
+      - date
+      - duration
+      - id
+      - real_duration
+      - real_timestamp
+      - time
+      - timestamp
+    ChannelListV2:
+      type: object
+      properties:
+        id:
+          type: integer
+        parent_id:
+          type: integer
+        name:
+          type: string
+          maxLength: 100
+        slug:
+          type: string
+          pattern: ^[-a-zA-Z0-9_]+$
+        num:
+          type: integer
+          readOnly: true
+        icon:
+          type: string
+          nullable: true
+          readOnly: true
+        hd:
+          type: boolean
+          readOnly: true
+        is_hd:
+          type: boolean
+        is_4k:
+          type: boolean
+          default: false
+        archived_days:
+          type: integer
+        real_archived_days:
+          type: integer
+          readOnly: true
+        cover:
+          type: object
+          additionalProperties: {}
+          readOnly: true
+        stream_types:
+          type: object
+          additionalProperties: {}
+          nullable: true
+          readOnly: true
+        future_days:
+          type: integer
+          readOnly: true
+          default: 2
+        ar:
+          type: string
+        access:
+          $ref: '#/components/schemas/ChannelAccess'
+        screen:
+          type: string
+        favorite:
+          allOf:
+          - $ref: '#/components/schemas/ShortUserFavorite'
+          readOnly: true
+        trackers:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChannelTracker'
+        screen_url:
+          type: string
+        is_free:
+          type: boolean
+          readOnly: true
+        is_hidden:
+          type: boolean
+          readOnly: true
+        is_favored:
+          type: boolean
+          readOnly: true
+        is_available:
+          type: boolean
+        is_purchased:
+          type: boolean
+          readOnly: true
+        access_errors:
+          type: array
+          items:
+            type: string
+        access_error:
+          type: string
+        current_schedule:
+          type: object
+          additionalProperties: {}
+          nullable: true
+          readOnly: true
+        motion_rating_id:
+          type: string
+          readOnly: true
+        age:
+          type: integer
+          nullable: true
+          readOnly: true
+      required:
+      - age
+      - ar
+      - archived_days
+      - cover
+      - current_schedule
+      - favorite
+      - future_days
+      - hd
+      - icon
+      - id
+      - is_favored
+      - is_free
+      - is_hd
+      - is_hidden
+      - is_purchased
+      - motion_rating_id
+      - name
+      - num
+      - real_archived_days
+      - stream_types
+    ChannelTracker:
+      type: object
+      properties:
+        tracker_type:
+          type: string
+        params:
+          type: object
+          additionalProperties: {}
+      required:
+      - params
+      - tracker_type
+    Device:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          title: Имя
+        device_type:
+          type: string
+        vendor:
+          type: string
+          title: Производитель
+        model:
+          type: string
+          title: Модель
+        version:
+          type: string
+          title: Версия
+        serial:
+          type: string
+          title: Серийный номер
+        os_name:
+          type: string
+        os_version:
+          type: string
+        timezone:
+          type: string
+          nullable: true
+          title: Часовой пояс
+          maxLength: 64
+        timezone_utcoffset:
+          type: integer
+          readOnly: true
+          title: Timezone offset
+        application_type:
+          type: string
+        profile_id:
+          type: string
+          writeOnly: true
+          title: Серийный номер
+        profile:
+          allOf:
+          - $ref: '#/components/schemas/UserProfile'
+          nullable: true
+          title: Профиль
+        store_source:
+          type: string
+          title: Внешний магазин
+        settings:
+          type: object
+          additionalProperties: {}
+          nullable: true
+          title: Настройки
+        auth_token:
+          type: string
+          writeOnly: true
+          title: Device token
+        notification:
+          allOf:
+          - $ref: '#/components/schemas/DeviceNotification'
+          nullable: true
+          title: Notification Token
+        interfaces:
+          type: array
+          items:
+            $ref: '#/components/schemas/DeviceInterface'
+          nullable: true
+          title: Интерфейсы
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        login_at:
+          type: string
+          format: date-time
+          readOnly: true
+        user_id:
+          type: integer
+          nullable: true
+        user:
+          allOf:
+          - $ref: '#/components/schemas/ShortUser'
+          readOnly: true
+        parental_settings:
+          allOf:
+          - $ref: '#/components/schemas/ParentalSettings'
+          nullable: true
+        action:
+          type: string
+          writeOnly: true
+          title: Parental control action
+        codec_structure:
+          type: string
+          writeOnly: true
+          nullable: true
+          title: Data about broadcasting
+        codec_structure_exist:
+          type: boolean
+          readOnly: true
+        promoted_for:
+          type: string
+          nullable: true
+        locale:
+          type: string
+          nullable: true
+          title: Device locale
+      required:
+      - codec_structure_exist
+      - created_at
+      - device_type
+      - id
+      - login_at
+      - timezone_utcoffset
+      - user
+      - vendor
+    DeviceInterface:
+      type: object
+      properties:
+        name:
+          type: string
+          nullable: true
+          title: Имя
+        mac:
+          type: string
+          nullable: true
+          title: MAC address
+      required:
+      - mac
+    DeviceNotification:
+      type: object
+      properties:
+        notification_type:
+          type: string
+          title: Тип
+        token:
+          type: string
+          title: Токен
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - notification_type
+      - token
+    Episode:
+      type: object
+      properties:
+        id:
+          type: integer
+        season:
+          type: integer
+        series:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+      required:
+      - description
+      - id
+      - season
+      - series
+      - title
+    FilterEntityLicensesCreate:
+      type: object
+      properties:
+        entity_license_id:
+          type: integer
+      required:
+      - entity_license_id
+    FlatPacket:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        short:
+          type: string
+        description:
+          type: string
+        old_price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        is_base:
+          type: boolean
+        is_public:
+          type: boolean
+        agreement_url:
+          type: string
+        period:
+          type: string
+        period_human:
+          type: object
+          additionalProperties: {}
+          default:
+            days: 0
+            months: 0
+            years: 0
+        design:
+          allOf:
+          - $ref: '#/components/schemas/PacketDesign'
+          readOnly: true
+        benefits:
+          type: array
+          items:
+            $ref: '#/components/schemas/Benefit'
+      required:
+      - agreement_url
+      - description
+      - design
+      - id
+      - is_base
+      - is_public
+      - name
+      - old_price
+      - period
+      - price
+      - short
+    Image:
+      type: object
+      properties:
+        type:
+          type: string
+        ar:
+          type: string
+          nullable: true
+        src:
+          type: string
+          format: uri
+      required:
+      - src
+      - type
+    Library:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        library_type:
+          type: string
+        cover:
+          type: object
+          additionalProperties: {}
+          nullable: true
+          readOnly: true
+        logo:
+          $ref: '#/components/schemas/ScaledImage'
+      required:
+      - cover
+      - id
+      - title
+    Message:
+      type: object
+      properties:
+        id:
+          type: string
+          readOnly: true
+        title:
+          type: string
+          title: Название
+        text:
+          type: string
+          title: Текст
+        icon:
+          type: string
+          format: uri
+          readOnly: true
+          title: Иконка
+        background:
+          type: string
+          format: uri
+          readOnly: true
+          title: Фон
+        params:
+          type: object
+          additionalProperties: {}
+          title: Параметры
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - background
+      - created_at
+      - icon
+      - id
+      - text
+      - title
+    NameOnlyProgramGenre:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+      required:
+      - id
+      - name
+    NanoContentSchedule:
+      type: object
+      properties:
+        id:
+          type: string
+          readOnly: true
+          title: content ID
+        title:
+          type: string
+          readOnly: true
+        cover:
+          type: string
+          readOnly: true
+        short:
+          type: string
+          readOnly: true
+        age:
+          type: integer
+          readOnly: true
+      required:
+      - age
+      - cover
+      - id
+      - short
+      - title
+    Offer:
+      type: object
+      properties:
+        total_price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        packets:
+          type: array
+          items:
+            $ref: '#/components/schemas/Packet'
+        target_available_at:
+          allOf:
+          - $ref: '#/components/schemas/TargetAvailableAt'
+          default:
+            channels: []
+            libraries: []
+        not_all_episodes_available:
+          type: boolean
+          readOnly: true
+      required:
+      - not_all_episodes_available
+      - total_price
+    Packet:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+          title: Имя
+        row_slug:
+          type: string
+          pattern: ^[-a-zA-Z0-9_]+$
+        short:
+          type: string
+          title: Краткое описание
+        description:
+          type: string
+          title: Описание
+        old_price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          title: Старая цена
+        price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          title: Цена
+        base:
+          type: boolean
+        is_public:
+          type: boolean
+        agreement:
+          type: string
+          title: URL соглашения
+        channels:
+          type: array
+          items:
+            $ref: '#/components/schemas/ShortChannel'
+        videos:
+          type: array
+          items:
+            $ref: '#/components/schemas/VideoSource'
+        libraries:
+          type: array
+          items:
+            $ref: '#/components/schemas/Library'
+        available:
+          type: array
+          items:
+            $ref: '#/components/schemas/Packet'
+          nullable: true
+        include:
+          type: array
+          items:
+            $ref: '#/components/schemas/Packet'
+          nullable: true
+        period:
+          type: string
+          title: Период
+        period_human:
+          type: object
+          additionalProperties: {}
+          default:
+            days: 0
+            months: 0
+            years: 0
+          title: Период
+        design:
+          allOf:
+          - $ref: '#/components/schemas/PacketDesign'
+          readOnly: true
+        benefits:
+          type: array
+          items:
+            $ref: '#/components/schemas/Benefit'
+        after_renew_packet_id:
+          type: integer
+          readOnly: true
+      required:
+      - after_renew_packet_id
+      - description
+      - design
+      - id
+      - name
+      - old_price
+      - price
+      - short
+    PacketDesign:
+      type: object
+      properties:
+        background_tv:
+          type: string
+          format: uri
+        background_mobile:
+          type: string
+          format: uri
+        small_background_tv:
+          type: string
+          format: uri
+        small_background_mobile:
+          type: string
+          format: uri
+        big_background_tv:
+          type: string
+          format: uri
+        logo:
+          $ref: '#/components/schemas/ScaledImage'
+        mini_logo:
+          $ref: '#/components/schemas/ScaledImage'
+        corner_badge:
+          $ref: '#/components/schemas/ScaledImage'
+        inline_badge:
+          $ref: '#/components/schemas/ScaledImage'
+        special_features:
+          $ref: '#/components/schemas/ScaledImage'
+    PacketFutureSubscription:
+      type: object
+      properties:
+        id:
+          type: string
+          readOnly: true
+        packet_id:
+          type: integer
+          writeOnly: true
+        packet:
+          allOf:
+          - $ref: '#/components/schemas/Packet'
+          readOnly: true
+        start_at:
+          type: string
+          format: date-time
+        renew:
+          type: boolean
+      required:
+      - id
+      - packet
+    PacketSubscription:
+      type: object
+      properties:
+        id:
+          type: string
+          readOnly: true
+        packet_id:
+          type: integer
+          writeOnly: true
+        packet:
+          allOf:
+          - $ref: '#/components/schemas/Packet'
+          readOnly: true
+        start_at:
+          type: string
+          format: date-time
+        end_at:
+          type: string
+          format: date-time
+        renew:
+          type: boolean
+        renew_in_provider:
+          type: boolean
+        is_paused:
+          type: boolean
+          readOnly: true
+        pauses:
+          type: array
+          items:
+            $ref: '#/components/schemas/PacketSubscriptionPause'
+        message:
+          type: string
+        must_show_success_text:
+          type: boolean
+        type:
+          type: string
+        allow_delete_paused:
+          type: string
+          readOnly: true
+      required:
+      - allow_delete_paused
+      - id
+      - is_paused
+      - packet
+    PacketSubscriptionPause:
+      type: object
+      properties:
+        id:
+          type: string
+          readOnly: true
+        start_at:
+          type: string
+          format: date-time
+          readOnly: true
+        end_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - end_at
+      - id
+      - start_at
+    ParentalSettings:
+      type: object
+      properties:
+        duration:
+          type: integer
+          minimum: 0
+          default: 0
+        pay:
+          type: boolean
+          default: false
+        profile:
+          type: boolean
+          default: false
+        program:
+          type: boolean
+          default: false
+        vod:
+          type: boolean
+          default: false
+        channel:
+          type: boolean
+          default: false
+        settings:
+          type: boolean
+          default: false
+    PatchedBaseUser:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        username:
+          type: string
+          title: Имя пользователя
+          maxLength: 40
+        first_name:
+          type: string
+          title: Имя
+          maxLength: 64
+        last_name:
+          type: string
+          title: Фамилия
+          maxLength: 64
+        provider_uid:
+          type: string
+          title: Идентификатор пользователя у провайдера
+          maxLength: 255
+        parental_code:
+          type: string
+          readOnly: true
+          title: Parents code
+        parental_status:
+          type: string
+          readOnly: true
+          title: Parents status
+        phone:
+          type: string
+          title: Телефон
+          maxLength: 32
+        email:
+          type: string
+          format: email
+        timezone:
+          type: string
+          title: Часовой пояс
+          maxLength: 64
+        timezone_utcoffset:
+          type: integer
+          readOnly: true
+          title: Timezone offset
+        password:
+          type: string
+          writeOnly: true
+          title: Пароль
+          maxLength: 32
+        pincode:
+          type: string
+          writeOnly: true
+          maxLength: 4
+        device_limit:
+          type: integer
+          title: Лимит устройств
+          minimum: 0
+          maximum: 100
+        accounts:
+          type: array
+          items:
+            $ref: '#/components/schemas/Account'
+          readOnly: true
+        sources:
+          type: array
+          items:
+            $ref: '#/components/schemas/SourceAccount'
+        provider:
+          allOf:
+          - $ref: '#/components/schemas/Provider'
+          readOnly: true
+        is_provider_free:
+          type: boolean
+          readOnly: true
+        is_active:
+          type: boolean
+        is_testuser:
+          type: boolean
+          readOnly: true
+        is_self_deletion_allowed:
+          type: string
+          readOnly: true
+        is_validated:
+          type: boolean
+        is_guest:
+          type: boolean
+        last_login:
+          type: string
+          format: date-time
+          nullable: true
+        date_joined:
+          type: string
+          format: date-time
+          nullable: true
+        tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/Tags'
+          readOnly: true
+          title: Users tags
+        subscriptions:
+          type: string
+          readOnly: true
+        app_version:
+          type: string
+          maxLength: 16
+        refer_id:
+          type: string
+          maxLength: 256
+        smartpay_id:
+          type: string
+          maxLength: 256
+        parental_dialogue:
+          type: string
+          readOnly: true
+        comment:
+          type: string
+          maxLength: 256
+        unaccepted_agreement_ids:
+          type: string
+          readOnly: true
+        is_geofree:
+          type: boolean
+          readOnly: true
+    PatchedPacketSubscription:
+      type: object
+      properties:
+        id:
+          type: string
+          readOnly: true
+        packet_id:
+          type: integer
+          writeOnly: true
+        packet:
+          allOf:
+          - $ref: '#/components/schemas/Packet'
+          readOnly: true
+        start_at:
+          type: string
+          format: date-time
+        end_at:
+          type: string
+          format: date-time
+        renew:
+          type: boolean
+        renew_in_provider:
+          type: boolean
+        is_paused:
+          type: boolean
+          readOnly: true
+        pauses:
+          type: array
+          items:
+            $ref: '#/components/schemas/PacketSubscriptionPause'
+        message:
+          type: string
+        must_show_success_text:
+          type: boolean
+        type:
+          type: string
+        allow_delete_paused:
+          type: string
+          readOnly: true
+    PatchedPacketSubscriptionPauseUpdate:
+      type: object
+      properties:
+        end_at:
+          type: string
+          format: date-time
+    PatchedTags:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        shortname:
+          type: string
+          title: Короткое имя
+        name:
+          type: string
+          title: Имя
+        description:
+          type: string
+          title: Описание
+    PatchedUserShortPacket:
+      type: object
+      properties:
+        packet_id:
+          type: string
+          readOnly: true
+          title: ID пакета
+        name:
+          type: string
+          title: Имя
+        description:
+          type: string
+          title: Описание
+        price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          title: Цена
+        packet:
+          allOf:
+          - $ref: '#/components/schemas/Packet'
+          readOnly: true
+          title: Пакет
+    PaymentSource:
+      type: object
+      properties:
+        id:
+          type: integer
+          title: ID источника
+        name:
+          type: string
+          title: Имя
+          maxLength: 30
+        type:
+          $ref: '#/components/schemas/TypeEnum'
+      required:
+      - type
+    PeriodPurchaseType:
+      type: object
+      properties:
+        period_human:
+          type: object
+          additionalProperties: {}
+          title: Период
+        description:
+          type: string
+          title: Описание покупки
+        purchases_type:
+          type: array
+          items:
+            $ref: '#/components/schemas/PurchaseType'
+      required:
+      - description
+      - period_human
+      - purchases_type
+    Profile:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+          title: Имя
+        icon:
+          type: string
+          format: uri
+          title: Иконка
+        background:
+          type: string
+          format: uri
+          title: Фон
+        role:
+          type: string
+          title: Роль
+        description:
+          type: string
+          title: Описание
+      required:
+      - description
+      - id
+    Program:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        short:
+          type: string
+        description:
+          type: string
+          readOnly: true
+        rating:
+          type: string
+          nullable: true
+        rating_imdb:
+          type: string
+          nullable: true
+        rating_kinopoisk:
+          type: string
+          nullable: true
+        kinopoisk_id:
+          type: string
+        year:
+          type: string
+        age:
+          type: integer
+          nullable: true
+        img:
+          type: string
+          readOnly: true
+        user_rating:
+          allOf:
+          - $ref: '#/components/schemas/UserRating'
+          readOnly: true
+          nullable: true
+        genres:
+          type: array
+          items:
+            $ref: '#/components/schemas/NameOnlyProgramGenre'
+        productions:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProgramProduction'
+        countries:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProgramCountry'
+        category:
+          $ref: '#/components/schemas/ProgramCategory'
+        favorite:
+          type: object
+          additionalProperties: {}
+          nullable: true
+          readOnly: true
+        sport:
+          $ref: '#/components/schemas/ProgramSport'
+        topics:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProgramTopic'
+        archive_expired_at:
+          type: string
+          format: date-time
+          readOnly: true
+        cover:
+          type: object
+          additionalProperties: {}
+          nullable: true
+          readOnly: true
+        screen_shot_url:
+          type: string
+          readOnly: true
+        archived_channel_ids:
+          type: array
+          items: {}
+          readOnly: true
+        is_catchup_available:
+          type: boolean
+      required:
+      - age
+      - archive_expired_at
+      - archived_channel_ids
+      - category
+      - countries
+      - cover
+      - description
+      - favorite
+      - genres
+      - id
+      - img
+      - productions
+      - rating
+      - rating_imdb
+      - rating_kinopoisk
+      - screen_shot_url
+      - short
+      - title
+      - topics
+      - user_rating
+      - year
+    ProgramCategory:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+      required:
+      - id
+      - name
+    ProgramCountry:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+      required:
+      - id
+      - name
+    ProgramImage:
+      type: object
+      properties:
+        type:
+          type: string
+        ar:
+          type: string
+          nullable: true
+        src:
+          type: string
+          format: uri
+      required:
+      - src
+      - type
+    ProgramProduction:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        icon:
+          type: string
+          format: uri
+      required:
+      - icon
+      - id
+      - name
+    ProgramSport:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+      required:
+      - id
+      - name
+    ProgramTopic:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+      required:
+      - id
+      - name
+    PromoKey:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        key:
+          type: string
+          title: Промоключ
+        is_active:
+          type: boolean
+          readOnly: true
+          title: Активен
+      required:
+      - id
+      - is_active
+      - key
+    Provider:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+          title: Имя
+        proxy:
+          type: string
+        agreement:
+          type: string
+        agreements:
+          type: object
+          additionalProperties: {}
+          readOnly: true
+        landing:
+          type: object
+          additionalProperties: {}
+          nullable: true
+          readOnly: true
+        auto_auth:
+          type: string
+          title: URL для авто аутентификации
+        is_have_purchases:
+          type: boolean
+          readOnly: true
+        is_allow_additional_packets_without_base:
+          type: boolean
+          readOnly: true
+        free_channels_count:
+          type: integer
+          readOnly: true
+        store_sources:
+          type: string
+          readOnly: true
+        language:
+          type: object
+          additionalProperties: {}
+          title: Client languages
+        currency:
+          type: object
+          additionalProperties: {}
+          readOnly: true
+        phone_mask:
+          type: string
+        getip_url:
+          type: string
+          readOnly: true
+        display_contact_info:
+          type: boolean
+          readOnly: true
+        disallow_subscribe:
+          type: boolean
+          readOnly: true
+        payment_info:
+          type: object
+          additionalProperties: {}
+          nullable: true
+          readOnly: true
+      required:
+      - agreements
+      - currency
+      - disallow_subscribe
+      - display_contact_info
+      - free_channels_count
+      - getip_url
+      - id
+      - is_allow_additional_packets_without_base
+      - is_have_purchases
+      - landing
+      - payment_info
+      - store_sources
+    ProviderAuthSwagger:
+      type: object
+      description: Сериализатор для swagger-а, чтобы не светить флаг all_providers
+      properties:
+        user_id:
+          type: integer
+          title: ID пользователя
+        username:
+          type: string
+          title: Имя пользователя
+        phone:
+          type: string
+          title: Телефон
+    ProviderPacketSubscription:
+      type: object
+      description: Serializer for provider API
+      properties:
+        id:
+          type: string
+          readOnly: true
+        packet_id:
+          type: integer
+          writeOnly: true
+        packet:
+          allOf:
+          - $ref: '#/components/schemas/Packet'
+          readOnly: true
+        start_at:
+          type: string
+          format: date-time
+        end_at:
+          type: string
+          format: date-time
+        renew:
+          type: boolean
+        renew_in_provider:
+          type: boolean
+        is_paused:
+          type: boolean
+          readOnly: true
+        pauses:
+          type: array
+          items:
+            $ref: '#/components/schemas/PacketSubscriptionPause'
+        message:
+          type: string
+        must_show_success_text:
+          type: boolean
+        type:
+          type: string
+        allow_delete_paused:
+          type: string
+          readOnly: true
+      required:
+      - allow_delete_paused
+      - id
+      - is_paused
+      - packet
+    PurchasePacketShort:
+      type: object
+      properties:
+        id:
+          type: integer
+        not_all_episodes_available:
+          type: boolean
+      required:
+      - id
+    PurchaseType:
+      type: object
+      properties:
+        id:
+          type: string
+          readOnly: true
+          title: ID типа покупки
+        title:
+          type: string
+          title: Название покупки
+        ptype:
+          type: string
+          title: Тип покупки
+        purchase_type:
+          type: string
+          readOnly: true
+          title: Тип покупки
+        short:
+          type: string
+          title: Короткое описание покупки
+        description:
+          type: string
+          title: Описание покупки
+        is_have_trial:
+          type: boolean
+          title: Покупка имеет триал
+        is_cancelable:
+          type: boolean
+          title: Останавливаемая покупка
+        amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          title: Цена
+        trial_amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          title: Стоимость триального периода
+        period_human:
+          type: object
+          additionalProperties: {}
+          title: Период
+        trial_period_human:
+          type: object
+          additionalProperties: {}
+          title: Период триала
+        store_sources:
+          type: array
+          items:
+            $ref: '#/components/schemas/PurchaseTypeStoreSource'
+        paysytems:
+          type: array
+          items:
+            $ref: '#/components/schemas/BillingPaySystem'
+          readOnly: true
+        user_purchase:
+          allOf:
+          - $ref: '#/components/schemas/ShortUserPurchase'
+          readOnly: true
+          title: ID пользовательской покупки
+        is_next_purchase:
+          type: boolean
+          default: false
+      required:
+      - amount
+      - description
+      - id
+      - is_cancelable
+      - is_have_trial
+      - paysytems
+      - period_human
+      - ptype
+      - purchase_type
+      - short
+      - store_sources
+      - title
+      - trial_amount
+      - trial_period_human
+      - user_purchase
+    PurchaseTypeStoreSource:
+      type: object
+      properties:
+        store_source:
+          $ref: '#/components/schemas/StoreSource'
+        external_id:
+          type: string
+          title: Внешний id
+      required:
+      - external_id
+      - store_source
+    QuickSalesChannel:
+      type: object
+      properties:
+        id:
+          type: integer
+        parent_id:
+          type: integer
+        name:
+          type: string
+          maxLength: 100
+        slug:
+          type: string
+          pattern: ^[-a-zA-Z0-9_]+$
+        num:
+          type: integer
+          readOnly: true
+        icon:
+          type: string
+          nullable: true
+          readOnly: true
+        hd:
+          type: boolean
+          readOnly: true
+        is_hd:
+          type: boolean
+        is_4k:
+          type: boolean
+          default: false
+        archived_days:
+          type: integer
+        real_archived_days:
+          type: integer
+          readOnly: true
+        cover:
+          type: object
+          additionalProperties: {}
+          readOnly: true
+        stream_types:
+          type: object
+          additionalProperties: {}
+          nullable: true
+          readOnly: true
+        future_days:
+          type: integer
+          readOnly: true
+          default: 2
+        age:
+          type: integer
+        ar:
+          type: string
+        favorite:
+          allOf:
+          - $ref: '#/components/schemas/ShortUserFavorite'
+          readOnly: true
+        screen_url:
+          type: string
+        screen:
+          type: string
+        schedule:
+          $ref: '#/components/schemas/Schedule'
+        current_schedule:
+          $ref: '#/components/schemas/Schedule'
+        video_streams:
+          type: string
+          readOnly: true
+        audio_streams:
+          type: string
+          readOnly: true
+        trackers:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChannelTracker'
+        access:
+          $ref: '#/components/schemas/ChannelAccess'
+        is_available:
+          type: boolean
+        access_errors:
+          type: array
+          items:
+            type: string
+        access_error:
+          type: string
+        is_favored:
+          type: boolean
+          readOnly: true
+        is_hidden:
+          type: boolean
+          readOnly: true
+        is_purchased:
+          type: boolean
+          readOnly: true
+        is_free:
+          type: boolean
+          readOnly: true
+        overflow_icon:
+          $ref: '#/components/schemas/ScaledImage'
+        motion_rating_id:
+          type: integer
+          nullable: true
+          readOnly: true
+      required:
+      - age
+      - ar
+      - archived_days
+      - audio_streams
+      - cover
+      - favorite
+      - future_days
+      - hd
+      - icon
+      - id
+      - is_favored
+      - is_free
+      - is_hd
+      - is_hidden
+      - is_purchased
+      - motion_rating_id
+      - name
+      - num
+      - real_archived_days
+      - stream_types
+      - video_streams
+    ScaledImage:
+      type: object
+      properties:
+        mobile_width_pt:
+          type: integer
+        mobile_height_pt:
+          type: integer
+        mobile_x2:
+          type: string
+          format: uri
+        mobile_x3:
+          type: string
+          format: uri
+        tv_width_pt:
+          type: integer
+        tv_height_pt:
+          type: integer
+        tv_x1:
+          type: string
+          format: uri
+        tv_x15:
+          type: string
+          format: uri
+        tv_x3:
+          type: string
+          format: uri
+        svg:
+          type: string
+          format: uri
+          nullable: true
+      required:
+      - mobile_height_pt
+      - mobile_width_pt
+      - mobile_x2
+      - mobile_x3
+      - svg
+      - tv_height_pt
+      - tv_width_pt
+      - tv_x1
+      - tv_x15
+      - tv_x3
+    Schedule:
+      type: object
+      properties:
+        id:
+          type: string
+          readOnly: true
+        time:
+          type: string
+          format: time
+        date:
+          type: string
+          format: date
+        channel_id:
+          type: integer
+        channel:
+          $ref: '#/components/schemas/ShortChannel'
+        timestamp:
+          type: string
+          format: date-time
+        real_timestamp:
+          type: string
+          format: date-time
+        duration:
+          type: integer
+        real_duration:
+          type: integer
+        img:
+          allOf:
+          - $ref: '#/components/schemas/ProgramImage'
+          readOnly: true
+          nullable: true
+        program:
+          allOf:
+          - $ref: '#/components/schemas/Program'
+          readOnly: true
+        episode:
+          allOf:
+          - $ref: '#/components/schemas/Episode'
+          readOnly: true
+        content_id:
+          type: string
+          readOnly: true
+        history:
+          type: object
+          additionalProperties: {}
+          nullable: true
+          readOnly: true
+        histories:
+          type: array
+          items:
+            $ref: '#/components/schemas/ShortUserHistory'
+          readOnly: true
+        is_catchup_available:
+          type: boolean
+          readOnly: true
+      required:
+      - channel_id
+      - content_id
+      - date
+      - duration
+      - episode
+      - histories
+      - history
+      - id
+      - img
+      - is_catchup_available
+      - program
+      - real_duration
+      - real_timestamp
+      - time
+      - timestamp
+    ShortChannel:
+      type: object
+      properties:
+        id:
+          type: integer
+        parent_id:
+          type: integer
+        name:
+          type: string
+          maxLength: 100
+        slug:
+          type: string
+          pattern: ^[-a-zA-Z0-9_]+$
+        num:
+          type: integer
+          readOnly: true
+        icon:
+          type: string
+          nullable: true
+          readOnly: true
+        hd:
+          type: boolean
+          readOnly: true
+        is_hd:
+          type: boolean
+        is_4k:
+          type: boolean
+          default: false
+        archived_days:
+          type: integer
+        real_archived_days:
+          type: integer
+          readOnly: true
+        cover:
+          type: object
+          additionalProperties: {}
+          readOnly: true
+        stream_types:
+          type: object
+          additionalProperties: {}
+          nullable: true
+          readOnly: true
+        future_days:
+          type: integer
+          readOnly: true
+          default: 2
+      required:
+      - archived_days
+      - cover
+      - future_days
+      - hd
+      - icon
+      - id
+      - is_hd
+      - name
+      - num
+      - real_archived_days
+      - stream_types
+    ShortContentEpisode:
+      type: object
+      properties:
+        id:
+          type: string
+          readOnly: true
+          title: content ID
+        season:
+          type: integer
+          readOnly: true
+        series:
+          type: integer
+          readOnly: true
+        title:
+          type: string
+          readOnly: true
+        description:
+          type: string
+          readOnly: true
+        subtitle:
+          type: string
+          readOnly: true
+        cover:
+          type: string
+          readOnly: true
+      required:
+      - cover
+      - description
+      - id
+      - season
+      - series
+      - subtitle
+      - title
+    ShortContentSchedule:
+      type: object
+      properties:
+        id:
+          type: string
+          readOnly: true
+        channel_id:
+          type: integer
+        time:
+          type: string
+          format: time
+        date:
+          type: string
+          format: date
+        timestamp:
+          type: string
+          format: date-time
+        real_timestamp:
+          type: string
+          format: date-time
+        duration:
+          type: integer
+        real_duration:
+          type: integer
+        content:
+          allOf:
+          - $ref: '#/components/schemas/NanoContentSchedule'
+          readOnly: true
+        content_episode:
+          allOf:
+          - $ref: '#/components/schemas/ShortContentEpisode'
+          readOnly: true
+        is_catchup_available:
+          type: boolean
+          readOnly: true
+        real_start_at:
+          type: string
+          format: date-time
+      required:
+      - channel_id
+      - content
+      - content_episode
+      - date
+      - duration
+      - id
+      - is_catchup_available
+      - real_duration
+      - real_start_at
+      - real_timestamp
+      - time
+      - timestamp
+    ShortUser:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        username:
+          type: string
+          title: Имя пользователя
+          maxLength: 40
+        first_name:
+          type: string
+          title: Имя
+          maxLength: 64
+        last_name:
+          type: string
+          title: Фамилия
+          maxLength: 64
+        provider_uid:
+          type: string
+          title: Идентификатор пользователя у провайдера
+          maxLength: 255
+      required:
+      - id
+    ShortUserFavorite:
+      type: object
+      properties:
+        id:
+          type: string
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - id
+    ShortUserHistory:
+      type: object
+      properties:
+        id:
+          type: string
+          readOnly: true
+        seconds:
+          type: integer
+          title: Seconds from start
+        viewed_at:
+          type: string
+          format: date-time
+          readOnly: true
+        watch_percentage:
+          type: integer
+          readOnly: true
+        is_watched:
+          type: boolean
+          readOnly: true
+      required:
+      - id
+      - is_watched
+      - seconds
+      - viewed_at
+      - watch_percentage
+    ShortUserPurchase:
+      type: object
+      properties:
+        id:
+          type: string
+          readOnly: true
+          title: ID пользовательской покупки
+        purchase_type_id:
+          type: string
+          title: ID типа покупки
+        account_id:
+          type: string
+          title: ID аккаунта
+        status:
+          type: string
+          readOnly: true
+          title: Статус
+        is_cancelable:
+          type: boolean
+          readOnly: true
+          title: Покупка не может быть отменена
+      required:
+      - account_id
+      - id
+      - is_cancelable
+      - purchase_type_id
+      - status
+    SourceAccount:
+      type: object
+      properties:
+        id:
+          type: integer
+          title: ID провайдера
+        source:
+          $ref: '#/components/schemas/PaymentSource'
+        amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          title: Стоимость
+      required:
+      - amount
+    StoreSource:
+      type: object
+      properties:
+        name:
+          type: string
+          title: Store source name
+      required:
+      - name
+    Tags:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        shortname:
+          type: string
+          title: Короткое имя
+        name:
+          type: string
+          title: Имя
+        description:
+          type: string
+          title: Описание
+      required:
+      - id
+    TargetAvailableAt:
+      type: object
+      properties:
+        channels:
+          type: array
+          items:
+            $ref: '#/components/schemas/QuickSalesChannel'
+          default: []
+        libraries:
+          type: array
+          items:
+            $ref: '#/components/schemas/Library'
+          default: []
+    Token:
+      type: object
+      properties:
+        access_token:
+          type: string
+          title: Токен
+        expired:
+          type: string
+          format: date-time
+          nullable: true
+          title: Просрочен
+        device:
+          allOf:
+          - $ref: '#/components/schemas/Device'
+          nullable: true
+          title: Устройство
+        profile:
+          allOf:
+          - $ref: '#/components/schemas/UserProfile'
+          nullable: true
+          title: Профиль
+        was_guest:
+          type: boolean
+      required:
+      - access_token
+    Transaction:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+          title: ID транзакции
+        source:
+          allOf:
+          - $ref: '#/components/schemas/PaymentSource'
+          readOnly: true
+        amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          title: Стоимость
+      required:
+      - amount
+      - id
+      - source
+    TypeEnum:
+      enum:
+      - billing
+      - manual
+      - info
+      - paysystem
+      type: string
+      description: |-
+        * `billing` - Биллинг
+        * `manual` - Документация
+        * `info` - Информация
+        * `paysystem` - Платежная система
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        username:
+          type: string
+          title: Имя пользователя
+          maxLength: 40
+        first_name:
+          type: string
+          title: Имя
+          maxLength: 64
+        last_name:
+          type: string
+          title: Фамилия
+          maxLength: 64
+        provider_uid:
+          type: string
+          title: Идентификатор пользователя у провайдера
+          maxLength: 255
+        parental_code:
+          type: string
+          readOnly: true
+          title: Parents code
+        parental_status:
+          type: string
+          readOnly: true
+          title: Parents status
+        phone:
+          type: string
+          title: Телефон
+          maxLength: 32
+        email:
+          type: string
+          format: email
+        timezone:
+          type: string
+          title: Часовой пояс
+          maxLength: 64
+        timezone_utcoffset:
+          type: integer
+          readOnly: true
+          title: Timezone offset
+        password:
+          type: string
+          writeOnly: true
+          title: Пароль
+          maxLength: 32
+        pincode:
+          type: string
+          writeOnly: true
+          maxLength: 4
+        device_limit:
+          type: integer
+          title: Лимит устройств
+          minimum: 0
+          maximum: 100
+        accounts:
+          type: array
+          items:
+            $ref: '#/components/schemas/Account'
+          readOnly: true
+        sources:
+          type: array
+          items:
+            $ref: '#/components/schemas/SourceAccount'
+        provider:
+          allOf:
+          - $ref: '#/components/schemas/Provider'
+          readOnly: true
+        is_provider_free:
+          type: boolean
+          readOnly: true
+        is_active:
+          type: boolean
+        is_testuser:
+          type: boolean
+          readOnly: true
+        is_self_deletion_allowed:
+          type: boolean
+          readOnly: true
+        is_validated:
+          type: boolean
+        is_guest:
+          type: boolean
+        last_login:
+          type: string
+          format: date-time
+          nullable: true
+        date_joined:
+          type: string
+          format: date-time
+          nullable: true
+        tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/Tags'
+          readOnly: true
+          title: Users tags
+        subscriptions:
+          type: array
+          items: {}
+          readOnly: true
+        app_version:
+          type: string
+          maxLength: 16
+        refer_id:
+          type: string
+          maxLength: 256
+        smartpay_id:
+          type: string
+          maxLength: 256
+        parental_dialogue:
+          type: string
+          readOnly: true
+        comment:
+          type: string
+          maxLength: 256
+        unaccepted_agreement_ids:
+          type: string
+          readOnly: true
+        is_geofree:
+          type: boolean
+          readOnly: true
+      required:
+      - accounts
+      - id
+      - is_geofree
+      - is_provider_free
+      - is_self_deletion_allowed
+      - is_testuser
+      - parental_code
+      - parental_dialogue
+      - parental_status
+      - provider
+      - subscriptions
+      - tags
+      - timezone_utcoffset
+      - unaccepted_agreement_ids
+    UserChannel:
+      type: object
+      properties:
+        id:
+          type: integer
+        favorite:
+          type: object
+          additionalProperties: {}
+        is_hidden:
+          type: boolean
+        is_purchased:
+          type: boolean
+        is_available:
+          type: boolean
+        overlay_icon:
+          type: string
+        available_archived_days:
+          type: integer
+        access_error:
+          type: string
+        min_price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        stream_types:
+          type: object
+          additionalProperties: {}
+          nullable: true
+          readOnly: true
+      required:
+      - available_archived_days
+      - id
+      - is_available
+      - is_hidden
+      - is_purchased
+      - overlay_icon
+      - stream_types
+    UserEntityLicensesListCreate:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        purchased_at:
+          type: string
+          format: date-time
+          readOnly: true
+        dtr_status:
+          type: boolean
+          readOnly: true
+      required:
+      - dtr_status
+      - id
+      - purchased_at
+    UserPacket:
+      type: object
+      properties:
+        packet_id:
+          type: string
+          writeOnly: true
+          title: ID пакета
+        name:
+          type: string
+          title: Имя
+        description:
+          type: string
+          title: Описание
+        price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          title: Цена
+        packet:
+          allOf:
+          - $ref: '#/components/schemas/Packet'
+          readOnly: true
+          title: Пакет
+      required:
+      - packet
+      - packet_id
+    UserProfile:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        profile_id:
+          type: integer
+          writeOnly: true
+        role:
+          type: string
+          writeOnly: true
+          title: Profile Role
+        profile:
+          allOf:
+          - $ref: '#/components/schemas/Profile'
+          readOnly: true
+        name:
+          type: string
+          title: Имя
+        icon:
+          type: string
+          format: uri
+          title: Иконка
+        icon_base64:
+          type: string
+          format: uri
+          writeOnly: true
+        icon_avatar_id:
+          type: integer
+          writeOnly: true
+        background:
+          type: string
+          format: uri
+          title: Фон
+      required:
+      - id
+      - profile
+    UserPromoKey:
+      type: object
+      properties:
+        key:
+          type: string
+          writeOnly: true
+          title: Промоключ
+        promo_key:
+          allOf:
+          - $ref: '#/components/schemas/PromoKey'
+          readOnly: true
+          title: Промоключ
+        title:
+          type: string
+          readOnly: true
+          title: Название
+        description:
+          type: string
+          readOnly: true
+          title: Описание
+        activated_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Активировано в
+        result:
+          type: object
+          additionalProperties: {}
+          readOnly: true
+          title: Результат
+      required:
+      - activated_at
+      - description
+      - key
+      - promo_key
+      - result
+      - title
+    UserRating:
+      type: object
+      properties:
+        id:
+          type: string
+          readOnly: true
+        rating:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          title: Рейтинг
+      required:
+      - id
+    UserTags:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        tag_id:
+          type: integer
+        shortname:
+          type: string
+          readOnly: true
+        name:
+          type: string
+          readOnly: true
+        description:
+          type: string
+          readOnly: true
+      required:
+      - description
+      - id
+      - name
+      - shortname
+    VideoAudioStream:
+      type: object
+      properties:
+        num:
+          type: string
+        stream:
+          $ref: '#/components/schemas/AudioStream'
+      required:
+      - num
+      - stream
+    VideoSource:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        img:
+          type: string
+          format: uri
+        images:
+          type: array
+          items:
+            $ref: '#/components/schemas/Image'
+      required:
+      - id
+      - images
+      - img
+      - title
+    VideoStream:
+      type: object
+      properties:
+        codec:
+          type: string
+          title: Кодек
+        resolution:
+          type: string
+          title: Язык
+        bitrate:
+          type: integer
+          title: Битрейт
+      required:
+      - bitrate
+      - codec
+      - resolution
+    VideoVideoStream:
+      type: object
+      properties:
+        num:
+          type: string
+        stream:
+          $ref: '#/components/schemas/VideoStream'
+      required:
+      - num
+      - stream
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: sessionid
+    providerTokenAuthentication:
+      type: apiKey
+      in: query
+      name: token
+      description: Provider Access Token
+    userAccessToken:
+      type: apiKey
+      in: query
+      name: access_token
+      description: User Access Token
+    userAccessTokenHeader:
+      type: apiKey
+      in: headers
+      name: Authorization
+      description: |-
+        Clients should authenticate by passing the token key in the "Authorization"
+            HTTP header, prepended with the string "Token ".  For example:
+                Authorization: Token 401f7ac837da42b97f613d789819ff93537bee6a
