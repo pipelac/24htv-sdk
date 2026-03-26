@@ -1,11 +1,11 @@
 # 24часаТВ PHP SDK
 
 [![PHP](https://img.shields.io/badge/PHP-5.6%2B-blue.svg)](https://php.net)
-[![License](https://img.shields.io/badge/license-proprietary-red.svg)]()
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 PHP SDK для интеграции с платформой [24часаТВ](https://24htv.platform24.tv) по провайдерской схеме.
 
-**Версия:** 1.0.0 | **PHP:** ≥ 5.6 | **Лицензия:** Proprietary
+**Версия:** 1.1.0 | **PHP:** ≥ 5.6 | **Лицензия:** MIT
 
 ---
 
@@ -410,6 +410,37 @@ TwentyFourTvException (базовый)
 └── ConfigException            (конфигурация)
 ```
 
+## Тестовая панель (Control Panel)
+
+SDK включает веб-интерфейс для интерактивного тестирования **всех 98 методов API** прямо из браузера.
+
+### Быстрый старт
+
+```bash
+cd panel
+php -S localhost:8080
+```
+
+Откройте http://localhost:8080, введите API-токен и тестируйте любые методы.
+
+### Покрытие
+
+| Сервис | Методов |
+|---|---|
+| 👤 Пользователи | 14 |
+| 📦 Пакеты | 14 |
+| 🔗 Подписки | 19 |
+| 💰 Баланс | 13 |
+| 📺 Каналы | 14 |
+| 📱 Устройства | 6 |
+| 🏷️ Теги | 7 |
+| 🎁 Промо | 5 |
+| ✉️ Сообщения | 4 |
+| 🔑 Авторизация | 1 |
+| 📄 Контракт | 1 |
+
+Подробнее: [panel/README.md](panel/README.md)
+
 ## Структура проекта
 
 ```
@@ -422,36 +453,23 @@ TwentyFourTvException (базовый)
 │   ├── ApiEndpoints.php           # Константы API-путей
 │   ├── SdkVersion.php             # Версия SDK
 │   ├── Contract/                  # Интерфейсы
-│   │   ├── AuthResolverInterface.php    # Контракт резолвера авторизации
-│   │   ├── BalanceResolverInterface.php # Контракт резолвера баланса
-│   │   ├── CallbackHandlerInterface.php
-│   │   ├── DatabaseInterface.php
-│   │   └── ...                    # 11 сервисных интерфейсов
-│   ├── Resolver/                  # Встроенные резолверы
-│   │   ├── UtmAuthResolver.php    # UTM5: авторизация по IP
-│   │   └── UtmBalanceResolver.php # UTM5: баланс из accounts
+│   ├── Resolver/                  # Встроенные резолверы (UTM5)
 │   ├── Service/                   # 11 сервисов
 │   ├── Model/                     # 10 DTO-моделей
 │   ├── Callback/                  # Обратная интеграция
-│   │   ├── CallbackHandler.php
-│   │   └── CallbackResponse.php
-│   ├── Http/                      # HTTP-утилиты
-│   │   ├── CircuitBreaker.php
-│   │   └── ServerRequest.php
-│   ├── Util/
-│   │   ├── QueryBuilder.php
-│   │   └── TokenMasker.php
+│   ├── Http/                      # CircuitBreaker, ServerRequest
+│   ├── Util/                      # QueryBuilder, TokenMasker
 │   └── Exception/                 # Иерархия исключений (8 классов)
+├── cfg/
+│   └── 24htv.ini.example           # Шаблон конфигурации
+├── panel/                         # Тестовая панель (98 методов API)
+│   ├── index.html                 # Веб-интерфейс
+│   ├── app.js                     # Логика и реестр методов
+│   ├── style.css                  # Дизайн-система (dark/light)
+│   └── proxy.php                  # CORS-прокси для API
 ├── tests/                         # PHPUnit тесты
 ├── examples/                      # Примеры использования
-│   ├── example_register_and_connect.php
-│   ├── example_callback_handler.php
-│   └── example_error_handling.php
 ├── docs/                          # Документация
-│   ├── quickstart.md
-│   ├── configuration.md
-│   ├── api-reference.md
-│   └── callbacks.md
 ├── composer.json
 ├── phpstan.neon
 └── phpunit.xml.dist
@@ -488,4 +506,4 @@ composer cs-fix
 
 ## Лицензия
 
-Proprietary. Все права защищены.
+[MIT License](LICENSE)
