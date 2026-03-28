@@ -2,13 +2,15 @@
 
 namespace TwentyFourTv\Tests\Unit\Service;
 
-use TwentyFourTv\Contract\HttpClientInterface;
-use TwentyFourTv\Service\UserService;
 use PHPUnit\Framework\TestCase;
+use TwentyFourTv\Contract\HttpClientInterface;
+use TwentyFourTv\Exception\ValidationException;
+use TwentyFourTv\Model\User;
+use TwentyFourTv\Service\UserService;
 
 class UserServiceTest extends TestCase
 {
-    /** @var HttpClientInterface|\PHPUnit_Framework_MockObject_MockObject */
+    /** @var HttpClientInterface|\PHPUnit\Framework\MockObject\MockObject */
     private $httpClient;
 
     /** @var UserService */
@@ -16,7 +18,7 @@ class UserServiceTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->httpClient = $this->createMock('TwentyFourTv\Contract\HttpClientInterface');
+        $this->httpClient = $this->createMock(HttpClientInterface::class);
         $this->service = new UserService($this->httpClient);
     }
 
@@ -32,7 +34,7 @@ class UserServiceTest extends TestCase
 
         $result = $this->service->register($data);
 
-        $this->assertInstanceOf('TwentyFourTv\Model\User', $result);
+        $this->assertInstanceOf(User::class, $result);
         $this->assertEquals(42, $result->getId());
         $this->assertEquals('test', $result->getUsername());
         $this->assertEquals('+71234567890', $result->getPhone());
@@ -41,13 +43,13 @@ class UserServiceTest extends TestCase
 
     public function testRegisterMissingUsernameThrows()
     {
-        $this->expectException('TwentyFourTv\Exception\ValidationException');
+        $this->expectException(ValidationException::class);
         $this->service->register(['phone' => '+71234567890']);
     }
 
     public function testRegisterMissingPhoneThrows()
     {
-        $this->expectException('TwentyFourTv\Exception\ValidationException');
+        $this->expectException(ValidationException::class);
         $this->service->register(['username' => 'test']);
     }
 
@@ -62,7 +64,7 @@ class UserServiceTest extends TestCase
 
         $result = $this->service->getById(42);
 
-        $this->assertInstanceOf('TwentyFourTv\Model\User', $result);
+        $this->assertInstanceOf(User::class, $result);
         $this->assertEquals(42, $result->getId());
         $this->assertEquals('test', $result->getUsername());
         $this->assertEquals('test@mail.ru', $result->getEmail());
@@ -70,7 +72,7 @@ class UserServiceTest extends TestCase
 
     public function testGetByIdInvalidThrows()
     {
-        $this->expectException('TwentyFourTv\Exception\ValidationException');
+        $this->expectException(ValidationException::class);
         $this->service->getById(null);
     }
 
@@ -96,7 +98,7 @@ class UserServiceTest extends TestCase
 
         $result = $this->service->update(42, ['first_name' => 'Updated']);
 
-        $this->assertInstanceOf('TwentyFourTv\Model\User', $result);
+        $this->assertInstanceOf(User::class, $result);
         $this->assertEquals('Updated', $result->getFirstName());
     }
 
@@ -111,7 +113,7 @@ class UserServiceTest extends TestCase
 
         $result = $this->service->block(42);
 
-        $this->assertInstanceOf('TwentyFourTv\Model\User', $result);
+        $this->assertInstanceOf(User::class, $result);
         $this->assertFalse($result->isActive());
     }
 
@@ -126,7 +128,7 @@ class UserServiceTest extends TestCase
 
         $result = $this->service->unblock(42);
 
-        $this->assertInstanceOf('TwentyFourTv\Model\User', $result);
+        $this->assertInstanceOf(User::class, $result);
         $this->assertTrue($result->isActive());
     }
 
@@ -159,18 +161,12 @@ class UserServiceTest extends TestCase
         $this->service->findByProviderUid('abc123');
     }
 
-    public function testArchiveReturnsUserDto()
+    public function testArchiveCallsApiDelete()
     {
-        $apiResponse = ['id' => 42, 'is_active' => false];
-
         $this->httpClient->expects($this->once())
-            ->method('apiPatch')
-            ->with('/users/42', ['is_active' => false])
-            ->willReturn($apiResponse);
+            ->method('apiDelete')
+            ->with('/users/42/archive');
 
-        $result = $this->service->archive(42);
-
-        $this->assertInstanceOf('TwentyFourTv\Model\User', $result);
-        $this->assertFalse($result->isActive());
+        $this->service->archive(42);
     }
 }

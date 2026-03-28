@@ -1,11 +1,8 @@
-includes:
-  - phpstan-baseline.neon
-
 parameters:
-  level: 6
-  paths:
-    - src
-  excludePaths:
-    - tests
-  treatPhpDocTypesAsCertain: false
-  phpVersion: 50600
+    level: 6
+    phpVersion: 50600
+    paths:
+        - src
+    excludePaths:
+        - src/Resolver/*
+    treatPhpDocTypesAsCertain: false

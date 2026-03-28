@@ -3,10 +3,7 @@
 namespace TwentyFourTv;
 
 use TwentyFourTv\Callback\CallbackHandler;
-use TwentyFourTv\Callback\CallbackResponse;
-use TwentyFourTv\Contract\CallbackHandlerInterface;
 use TwentyFourTv\Contract\ConfigInterface;
-use TwentyFourTv\Contract\DatabaseInterface;
 use TwentyFourTv\Contract\HttpClientInterface;
 use TwentyFourTv\Contract\LoggerInterface;
 use TwentyFourTv\Contract\Service\AuthServiceInterface;
@@ -35,28 +32,23 @@ use TwentyFourTv\Service\TagService;
 use TwentyFourTv\Service\UserService;
 
 /**
- * Главный фасад SDK 24часаТВ
+ * Фасад SDK для работы с платформой 24часаТВ
  *
- * Предоставляет единую точку входа ко всем сервисам API.
- * Сервисы инициализируются лениво (lazy loading) — создаются только при первом обращении.
+ * Предоставляет доступ ко всем сервисам через ленивую инициализацию.
+ * Каждый сервис создаётся при первом обращении и кэшируется.
  *
  * <code>
- * // Создание через фабрику (рекомендуемый способ)
  * $client = ClientFactory::create('/path/to/24htv.ini', $logger);
  *
- * // Использование сервисов
- * $user = $client->users()->register(['username' => 'test', 'phone' => '+79001234567']);
- * $packets = $client->packets()->getAll();
- * $client->subscriptions()->connectSingle($user['id'], $packets[0]['id']);
+ * // Работа с пользователями
+ * $user = $client->users()->register([...]);
  *
- * // Быстрая регистрация с подключением пакета
- * $result = $client->registerAndConnect(
- *     ['username' => 'test', 'phone' => '+79001234567'],
- *     $packetId
- * );
+ * // Подмена реализации сервиса
+ * $client->registerService(UserServiceInterface::class, function() {
+ *     return new MyCustomUserService($httpClient, $logger);
+ * });
  * </code>
  *
- * @see ClientFactory Фабрика для создания экземпляра
  * @since 1.0.0
  */
 class Client
@@ -70,62 +62,28 @@ class Client
     /** @var LoggerInterface|null */
     private $logger;
 
-    /** @var DatabaseInterface|null */
-    private $db;
+    /** @var array Закэшированные инстансы сервисов */
+    private $services = [];
 
-    // Ленивые сервисы
-    /** @var UserServiceInterface|null */
-    private $userService;
+    /** @var array Кастомные фабрики сервисов */
+    private $customFactories = [];
 
-    /** @var PacketServiceInterface|null */
-    private $packetService;
-
-    /** @var SubscriptionServiceInterface|null */
-    private $subscriptionService;
-
-    /** @var BalanceServiceInterface|null */
-    private $balanceService;
-
-    /** @var ContractServiceInterface|null */
-    private $contractService;
-
-    /** @var AuthServiceInterface|null */
-    private $authService;
-
-    /** @var ChannelServiceInterface|null */
-    private $channelService;
-
-    /** @var DeviceServiceInterface|null */
-    private $deviceService;
-
-    /** @var TagServiceInterface|null */
-    private $tagService;
-
-    /** @var PromoServiceInterface|null */
-    private $promoService;
-
-    /** @var MessageServiceInterface|null */
-    private $messageService;
-
-    /** @var CallbackHandlerInterface|null */
+    /** @var CallbackHandler|null */
     private $callbackHandler;
 
     /**
-     * @param HttpClientInterface    $httpClient HTTP-клиент
-     * @param ConfigInterface        $config     Конфигурация
-     * @param LoggerInterface|null   $logger     Логгер
-     * @param DatabaseInterface|null $db         Соединение с БД (для CallbackHandler)
+     * @param HttpClientInterface $httpClient HTTP-транспорт
+     * @param ConfigInterface     $config     Конфигурация SDK
+     * @param LoggerInterface|null $logger    Логгер (опционально)
      */
     public function __construct(
         HttpClientInterface $httpClient,
         ConfigInterface $config,
-        LoggerInterface $logger = null,
-        DatabaseInterface $db = null
+        LoggerInterface $logger = null
     ) {
         $this->httpClient = $httpClient;
         $this->config = $config;
         $this->logger = $logger;
-        $this->db = $db;
     }
 
     // ==========================================
@@ -133,163 +91,156 @@ class Client
     // ==========================================
 
     /**
-     * Управление пользователями
+     * Сервис управления пользователями
      *
      * @return UserServiceInterface
      */
     public function users()
     {
-        if ($this->userService === null) {
-            $this->userService = new UserService($this->httpClient, $this->logger);
-        }
-
-        return $this->userService;
+        return $this->resolveService(
+            UserServiceInterface::class,
+            UserService::class
+        );
     }
 
     /**
-     * Управление пакетами
+     * Сервис управления пакетами
      *
      * @return PacketServiceInterface
      */
     public function packets()
     {
-        if ($this->packetService === null) {
-            $this->packetService = new PacketService($this->httpClient, $this->logger);
-        }
-
-        return $this->packetService;
+        return $this->resolveService(
+            PacketServiceInterface::class,
+            PacketService::class
+        );
     }
 
     /**
-     * Управление подписками
+     * Сервис управления подписками
      *
      * @return SubscriptionServiceInterface
      */
     public function subscriptions()
     {
-        if ($this->subscriptionService === null) {
-            $this->subscriptionService = new SubscriptionService($this->httpClient, $this->logger);
-        }
-
-        return $this->subscriptionService;
+        return $this->resolveService(
+            SubscriptionServiceInterface::class,
+            SubscriptionService::class
+        );
     }
 
     /**
-     * Управление балансом
+     * Сервис управления балансом и аккаунтами
      *
      * @return BalanceServiceInterface
      */
     public function balance()
     {
-        if ($this->balanceService === null) {
-            $this->balanceService = new BalanceService($this->httpClient, $this->logger);
-        }
-
-        return $this->balanceService;
+        return $this->resolveService(
+            BalanceServiceInterface::class,
+            BalanceService::class
+        );
     }
 
     /**
-     * Управление контрактами (расторжение)
-     *
-     * @return ContractServiceInterface
-     */
-    public function contracts()
-    {
-        if ($this->contractService === null) {
-            $this->contractService = new ContractService($this->httpClient, $this->logger);
-        }
-
-        return $this->contractService;
-    }
-
-    /**
-     * Аутентификация
-     *
-     * @return AuthServiceInterface
-     */
-    public function auth()
-    {
-        if ($this->authService === null) {
-            $this->authService = new AuthService($this->httpClient, $this->logger);
-        }
-
-        return $this->authService;
-    }
-
-    /**
-     * Управление каналами
+     * Сервис управления каналами
      *
      * @return ChannelServiceInterface
      */
     public function channels()
     {
-        if ($this->channelService === null) {
-            $this->channelService = new ChannelService($this->httpClient, $this->logger);
-        }
-
-        return $this->channelService;
+        return $this->resolveService(
+            ChannelServiceInterface::class,
+            ChannelService::class
+        );
     }
 
     /**
-     * Управление устройствами
+     * Сервис управления устройствами
      *
      * @return DeviceServiceInterface
      */
     public function devices()
     {
-        if ($this->deviceService === null) {
-            $this->deviceService = new DeviceService($this->httpClient, $this->logger);
-        }
-
-        return $this->deviceService;
+        return $this->resolveService(
+            DeviceServiceInterface::class,
+            DeviceService::class
+        );
     }
 
     /**
-     * Управление тегами
+     * Сервис аутентификации
+     *
+     * @return AuthServiceInterface
+     */
+    public function auth()
+    {
+        return $this->resolveService(
+            AuthServiceInterface::class,
+            AuthService::class
+        );
+    }
+
+    /**
+     * Сервис расторжения договоров
+     *
+     * @return ContractServiceInterface
+     */
+    public function contracts()
+    {
+        return $this->resolveService(
+            ContractServiceInterface::class,
+            ContractService::class
+        );
+    }
+
+    /**
+     * Сервис управления тегами
      *
      * @return TagServiceInterface
      */
     public function tags()
     {
-        if ($this->tagService === null) {
-            $this->tagService = new TagService($this->httpClient, $this->logger);
-        }
-
-        return $this->tagService;
+        return $this->resolveService(
+            TagServiceInterface::class,
+            TagService::class
+        );
     }
 
     /**
-     * Управление промо-пакетами
+     * Сервис промо-пакетов
      *
      * @return PromoServiceInterface
      */
     public function promo()
     {
-        if ($this->promoService === null) {
-            $this->promoService = new PromoService($this->httpClient, $this->logger);
-        }
-
-        return $this->promoService;
+        return $this->resolveService(
+            PromoServiceInterface::class,
+            PromoService::class
+        );
     }
 
     /**
-     * Управление сообщениями
+     * Сервис сообщений
      *
      * @return MessageServiceInterface
      */
     public function messages()
     {
-        if ($this->messageService === null) {
-            $this->messageService = new MessageService($this->httpClient, $this->logger);
-        }
-
-        return $this->messageService;
+        return $this->resolveService(
+            MessageServiceInterface::class,
+            MessageService::class
+        );
     }
 
+    // ==========================================
+    // CALLBACK HANDLER
+    // ==========================================
+
     /**
-     * Обработчик callback-запросов от 24ТВ
+     * Получить обработчик callbacks
      *
-     * @return CallbackHandlerInterface
+     * @return CallbackHandler
      */
     public function callbacks()
     {
@@ -300,186 +251,12 @@ class Client
         return $this->callbackHandler;
     }
 
-    // ==========================================
-    // SETTER INJECTION (для тестирования / переопределения)
-    // ==========================================
-
     /**
-     * @param UserServiceInterface $service
+     * Обработать входящий callback-запрос
      *
-     * @return $this
-     */
-    public function setUserService(UserServiceInterface $service)
-    {
-        $this->userService = $service;
-
-        return $this;
-    }
-
-    /**
-     * @param PacketServiceInterface $service
+     * @param ServerRequest|null $request HTTP-запрос (если null — создаётся из суперглобалов)
      *
-     * @return $this
-     */
-    public function setPacketService(PacketServiceInterface $service)
-    {
-        $this->packetService = $service;
-
-        return $this;
-    }
-
-    /**
-     * @param SubscriptionServiceInterface $service
-     *
-     * @return $this
-     */
-    public function setSubscriptionService(SubscriptionServiceInterface $service)
-    {
-        $this->subscriptionService = $service;
-
-        return $this;
-    }
-
-    /**
-     * @param BalanceServiceInterface $service
-     *
-     * @return $this
-     */
-    public function setBalanceService(BalanceServiceInterface $service)
-    {
-        $this->balanceService = $service;
-
-        return $this;
-    }
-
-    /**
-     * @param ContractServiceInterface $service
-     *
-     * @return $this
-     */
-    public function setContractService(ContractServiceInterface $service)
-    {
-        $this->contractService = $service;
-
-        return $this;
-    }
-
-    /**
-     * @param AuthServiceInterface $service
-     *
-     * @return $this
-     */
-    public function setAuthService(AuthServiceInterface $service)
-    {
-        $this->authService = $service;
-
-        return $this;
-    }
-
-    /**
-     * @param ChannelServiceInterface $service
-     *
-     * @return $this
-     */
-    public function setChannelService(ChannelServiceInterface $service)
-    {
-        $this->channelService = $service;
-
-        return $this;
-    }
-
-    /**
-     * @param DeviceServiceInterface $service
-     *
-     * @return $this
-     */
-    public function setDeviceService(DeviceServiceInterface $service)
-    {
-        $this->deviceService = $service;
-
-        return $this;
-    }
-
-    /**
-     * @param TagServiceInterface $service
-     *
-     * @return $this
-     */
-    public function setTagService(TagServiceInterface $service)
-    {
-        $this->tagService = $service;
-
-        return $this;
-    }
-
-    /**
-     * @param PromoServiceInterface $service
-     *
-     * @return $this
-     */
-    public function setPromoService(PromoServiceInterface $service)
-    {
-        $this->promoService = $service;
-
-        return $this;
-    }
-
-    /**
-     * @param MessageServiceInterface $service
-     *
-     * @return $this
-     */
-    public function setMessageService(MessageServiceInterface $service)
-    {
-        $this->messageService = $service;
-
-        return $this;
-    }
-
-    /**
-     * @param CallbackHandlerInterface $handler
-     *
-     * @return $this
-     */
-    public function setCallbackHandler(CallbackHandlerInterface $handler)
-    {
-        $this->callbackHandler = $handler;
-
-        return $this;
-    }
-
-    // ==========================================
-    // ШОРТКАТЫ
-    // ==========================================
-
-    /**
-     * Быстрая регистрация пользователя с подключением пакета
-     *
-     * @param array $userData Данные пользователя (username, phone, provider_uid, ...)
-     * @param int   $packetId ID пакета для подключения
-     * @param bool  $renew    Автопродление
-     *
-     * @return array ['user' => User, 'subscriptions' => array]
-     */
-    public function registerAndConnect(array $userData, $packetId, $renew = true)
-    {
-        $user = $this->users()->register($userData);
-        $userId = $user->getId();
-
-        $subscriptions = $this->subscriptions()->connectSingle($userId, $packetId, $renew);
-
-        return [
-            'user'          => $user,
-            'subscriptions' => $subscriptions,
-        ];
-    }
-
-    /**
-     * Обработать входящий callback от 24ТВ
-     *
-     * @param ServerRequest|null $request Объект запроса (если null — создаётся из суперглобалов)
-     *
-     * @return CallbackResponse
+     * @return \TwentyFourTv\Callback\CallbackResponse
      */
     public function handleCallback(ServerRequest $request = null)
     {
@@ -496,7 +273,64 @@ class Client
     }
 
     // ==========================================
-    // ГЕТТЕРЫ
+    // CONVENIENCE METHODS
+    // ==========================================
+
+    /**
+     * Регистрация пользователя + подключение пакета в одной операции
+     *
+     * @param array $userData     Данные для регистрации
+     * @param int   $packetId    ID пакета для подключения
+     * @param bool  $renew       Автопродление подписки
+     *
+     * @throws \TwentyFourTv\Exception\TwentyFourTvException
+     *
+     * @return array ['user' => User, 'subscriptions' => array]
+     */
+    public function registerAndConnect(array $userData, $packetId, $renew = true)
+    {
+        $user = $this->users()->register($userData);
+
+        $subscriptions = $this->subscriptions()->connect($user->getId(), [
+            ['packet_id' => (int) $packetId, 'renew' => $renew],
+        ]);
+
+        return [
+            'user'          => $user,
+            'subscriptions' => $subscriptions,
+        ];
+    }
+
+    // ==========================================
+    // SERVICE REGISTRY
+    // ==========================================
+
+    /**
+     * Зарегистрировать кастомную фабрику для сервиса
+     *
+     * Позволяет подменить любую реализацию сервиса без наследования Client.
+     *
+     * <code>
+     * $client->registerService(UserServiceInterface::class, function() use ($httpClient, $logger) {
+     *     return new MyCustomUserService($httpClient, $logger);
+     * });
+     * </code>
+     *
+     * @param string   $interface Полное имя интерфейса (FQCN)
+     * @param callable $factory   Фабрика, возвращающая реализацию
+     *
+     * @return $this
+     */
+    public function registerService($interface, $factory)
+    {
+        $this->customFactories[$interface] = $factory;
+        unset($this->services[$interface]);
+
+        return $this;
+    }
+
+    // ==========================================
+    // АКЦЕССОРЫ
     // ==========================================
 
     /**
@@ -516,12 +350,35 @@ class Client
     }
 
     /**
-     * Получить версию SDK
-     *
-     * @return string
+     * @return LoggerInterface|null
      */
-    public static function getVersion()
+    public function getLogger()
     {
-        return SdkVersion::VERSION;
+        return $this->logger;
+    }
+
+    // ==========================================
+    // PRIVATE
+    // ==========================================
+
+    /**
+     * Разрешить сервис: кастомная фабрика → инстанс по умолчанию
+     *
+     * @param string $interface        FQCN интерфейса
+     * @param string $defaultClass     FQCN реализации по умолчанию
+     *
+     * @return object
+     */
+    private function resolveService($interface, $defaultClass)
+    {
+        if (!isset($this->services[$interface])) {
+            if (isset($this->customFactories[$interface])) {
+                $this->services[$interface] = call_user_func($this->customFactories[$interface]);
+            } else {
+                $this->services[$interface] = new $defaultClass($this->httpClient, $this->logger);
+            }
+        }
+
+        return $this->services[$interface];
     }
 }

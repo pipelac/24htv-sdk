@@ -4,6 +4,8 @@ namespace TwentyFourTv\Tests\Unit\Service;
 
 use TwentyFourTv\Service\MessageService;
 use PHPUnit\Framework\TestCase;
+use TwentyFourTv\Contract\HttpClientInterface;
+use TwentyFourTv\Exception\ValidationException;
 
 class MessageServiceTest extends TestCase
 {
@@ -12,7 +14,7 @@ class MessageServiceTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->httpClient = $this->createMock('TwentyFourTv\Contract\HttpClientInterface');
+        $this->httpClient = $this->createMock(HttpClientInterface::class);
         $this->service = new MessageService($this->httpClient);
     }
 
@@ -43,7 +45,7 @@ class MessageServiceTest extends TestCase
 
     public function testGetAllInvalidThrows()
     {
-        $this->expectException('TwentyFourTv\Exception\ValidationException');
+        $this->expectException(ValidationException::class);
         $this->service->getAll(null);
     }
 }

@@ -4,6 +4,8 @@ namespace TwentyFourTv\Tests\Unit\Resolver;
 
 use TwentyFourTv\Resolver\UtmAuthResolver;
 use PHPUnit\Framework\TestCase;
+use TwentyFourTv\Contract\DatabaseInterface;
+use TwentyFourTv\Contract\LoggerInterface;
 
 class UtmAuthResolverTest extends TestCase
 {
@@ -12,8 +14,8 @@ class UtmAuthResolverTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->db = $this->getMockBuilder('TwentyFourTv\Contract\DatabaseInterface')->getMock();
-        $this->logger = $this->getMockBuilder('TwentyFourTv\Contract\LoggerInterface')->getMock();
+        $this->db = $this->getMockBuilder(DatabaseInterface::class)->getMock();
+        $this->logger = $this->getMockBuilder(LoggerInterface::class)->getMock();
     }
 
     public function testAuthByIpSuccess()

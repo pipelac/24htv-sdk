@@ -4,6 +4,8 @@ namespace TwentyFourTv\Tests\Unit\Service;
 
 use TwentyFourTv\Service\BalanceService;
 use PHPUnit\Framework\TestCase;
+use TwentyFourTv\Contract\HttpClientInterface;
+use TwentyFourTv\Exception\ValidationException;
 
 class BalanceServiceTest extends TestCase
 {
@@ -12,7 +14,7 @@ class BalanceServiceTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->httpClient = $this->createMock('TwentyFourTv\Contract\HttpClientInterface');
+        $this->httpClient = $this->createMock(HttpClientInterface::class);
         $this->service = new BalanceService($this->httpClient);
     }
 
@@ -72,7 +74,7 @@ class BalanceServiceTest extends TestCase
 
     public function testSetInvalidUserIdThrows()
     {
-        $this->expectException('TwentyFourTv\Exception\ValidationException');
+        $this->expectException(ValidationException::class);
         $this->service->set(null, 'acc1', '500');
     }
 }

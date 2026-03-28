@@ -2,8 +2,23 @@
 
 namespace TwentyFourTv\Tests\Unit;
 
-use TwentyFourTv\Client;
 use PHPUnit\Framework\TestCase;
+use TwentyFourTv\Client;
+use TwentyFourTv\Contract\ConfigInterface;
+use TwentyFourTv\Contract\HttpClientInterface;
+use TwentyFourTv\Contract\Service\UserServiceInterface;
+use TwentyFourTv\Model\User;
+use TwentyFourTv\Service\AuthService;
+use TwentyFourTv\Service\BalanceService;
+use TwentyFourTv\Service\ChannelService;
+use TwentyFourTv\Service\ContractService;
+use TwentyFourTv\Service\DeviceService;
+use TwentyFourTv\Service\MessageService;
+use TwentyFourTv\Service\PacketService;
+use TwentyFourTv\Service\PromoService;
+use TwentyFourTv\Service\SubscriptionService;
+use TwentyFourTv\Service\TagService;
+use TwentyFourTv\Service\UserService;
 
 class ClientTest extends TestCase
 {
@@ -13,64 +28,64 @@ class ClientTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->httpClient = $this->createMock('TwentyFourTv\Contract\HttpClientInterface');
-        $this->config = $this->createMock('TwentyFourTv\Contract\ConfigInterface');
+        $this->httpClient = $this->createMock(HttpClientInterface::class);
+        $this->config = $this->createMock(ConfigInterface::class);
         $this->client = new Client($this->httpClient, $this->config);
     }
 
     public function testUsersReturnsUserService()
     {
-        $this->assertInstanceOf('TwentyFourTv\Service\UserService', $this->client->users());
+        $this->assertInstanceOf(UserService::class, $this->client->users());
     }
 
     public function testPacketsReturnsPacketService()
     {
-        $this->assertInstanceOf('TwentyFourTv\Service\PacketService', $this->client->packets());
+        $this->assertInstanceOf(PacketService::class, $this->client->packets());
     }
 
     public function testSubscriptionsReturnsSubscriptionService()
     {
-        $this->assertInstanceOf('TwentyFourTv\Service\SubscriptionService', $this->client->subscriptions());
+        $this->assertInstanceOf(SubscriptionService::class, $this->client->subscriptions());
     }
 
     public function testBalanceReturnsBalanceService()
     {
-        $this->assertInstanceOf('TwentyFourTv\Service\BalanceService', $this->client->balance());
+        $this->assertInstanceOf(BalanceService::class, $this->client->balance());
     }
 
     public function testChannelsReturnsChannelService()
     {
-        $this->assertInstanceOf('TwentyFourTv\Service\ChannelService', $this->client->channels());
+        $this->assertInstanceOf(ChannelService::class, $this->client->channels());
     }
 
     public function testDevicesReturnsDeviceService()
     {
-        $this->assertInstanceOf('TwentyFourTv\Service\DeviceService', $this->client->devices());
+        $this->assertInstanceOf(DeviceService::class, $this->client->devices());
     }
 
     public function testAuthReturnsAuthService()
     {
-        $this->assertInstanceOf('TwentyFourTv\Service\AuthService', $this->client->auth());
+        $this->assertInstanceOf(AuthService::class, $this->client->auth());
     }
 
     public function testContractsReturnsContractService()
     {
-        $this->assertInstanceOf('TwentyFourTv\Service\ContractService', $this->client->contracts());
+        $this->assertInstanceOf(ContractService::class, $this->client->contracts());
     }
 
     public function testTagsReturnsTagService()
     {
-        $this->assertInstanceOf('TwentyFourTv\Service\TagService', $this->client->tags());
+        $this->assertInstanceOf(TagService::class, $this->client->tags());
     }
 
     public function testPromoReturnsPromoService()
     {
-        $this->assertInstanceOf('TwentyFourTv\Service\PromoService', $this->client->promo());
+        $this->assertInstanceOf(PromoService::class, $this->client->promo());
     }
 
     public function testMessagesReturnsMessageService()
     {
-        $this->assertInstanceOf('TwentyFourTv\Service\MessageService', $this->client->messages());
+        $this->assertInstanceOf(MessageService::class, $this->client->messages());
     }
 
     public function testLazyLoadingReturnsSameInstance()
@@ -88,6 +103,33 @@ class ClientTest extends TestCase
     public function testGetHttpClient()
     {
         $this->assertSame($this->httpClient, $this->client->getHttpClient());
+    }
+
+    public function testRegisterService()
+    {
+        $customService = $this->createMock(UserServiceInterface::class);
+
+        $this->client->registerService(UserServiceInterface::class, function () use ($customService) {
+            return $customService;
+        });
+
+        $this->assertSame($customService, $this->client->users());
+    }
+
+    public function testRegisterServiceOverridesExisting()
+    {
+        // Первый вызов — дефолтный сервис
+        $default = $this->client->users();
+        $this->assertInstanceOf(UserService::class, $default);
+
+        // Подмена
+        $customService = $this->createMock(UserServiceInterface::class);
+        $this->client->registerService(UserServiceInterface::class, function () use ($customService) {
+            return $customService;
+        });
+
+        // Теперь возвращает кастомный
+        $this->assertSame($customService, $this->client->users());
     }
 
     public function testRegisterAndConnect()
@@ -113,7 +155,7 @@ class ClientTest extends TestCase
             });
 
         $result = $this->client->registerAndConnect($userData, 80);
-        $this->assertInstanceOf('TwentyFourTv\Model\User', $result['user']);
+        $this->assertInstanceOf(User::class, $result['user']);
         $this->assertEquals(42, $result['user']->getId());
         $this->assertEquals('sub-1', $result['subscriptions'][0]['id']);
     }

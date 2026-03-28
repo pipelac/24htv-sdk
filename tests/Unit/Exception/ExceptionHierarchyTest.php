@@ -7,6 +7,10 @@ use TwentyFourTv\Exception\NotFoundException;
 use TwentyFourTv\Exception\TwentyFourTvException;
 use TwentyFourTv\Exception\ValidationException;
 use PHPUnit\Framework\TestCase;
+use TwentyFourTv\Exception\AuthenticationException;
+use TwentyFourTv\Exception\ConflictException;
+use TwentyFourTv\Exception\ForbiddenException;
+use TwentyFourTv\Exception\RateLimitException;
 
 class ExceptionHierarchyTest extends TestCase
 {
@@ -18,7 +22,7 @@ class ExceptionHierarchyTest extends TestCase
         $exception = new $exceptionClass('Test error', 0, 400, ['detail' => 'error']);
 
         $this->assertInstanceOf(
-            'TwentyFourTv\Exception\TwentyFourTvException',
+            TwentyFourTvException::class,
             $exception,
             "{$exceptionClass} should extend TwentyFourTvException",
         );
@@ -28,13 +32,13 @@ class ExceptionHierarchyTest extends TestCase
     public static function exceptionProvider()
     {
         return [
-            'AuthenticationException' => ['TwentyFourTv\Exception\AuthenticationException'],
-            'ConflictException'       => ['TwentyFourTv\Exception\ConflictException'],
-            'ConnectionException'     => ['TwentyFourTv\Exception\ConnectionException'],
-            'ForbiddenException'      => ['TwentyFourTv\Exception\ForbiddenException'],
-            'NotFoundException'       => ['TwentyFourTv\Exception\NotFoundException'],
-            'RateLimitException'      => ['TwentyFourTv\Exception\RateLimitException'],
-            'ValidationException'     => ['TwentyFourTv\Exception\ValidationException'],
+            'AuthenticationException' => [AuthenticationException::class],
+            'ConflictException'       => [ConflictException::class],
+            'ConnectionException'     => [ConnectionException::class],
+            'ForbiddenException'      => [ForbiddenException::class],
+            'NotFoundException'       => [NotFoundException::class],
+            'RateLimitException'      => [RateLimitException::class],
+            'ValidationException'     => [ValidationException::class],
         ];
     }
 

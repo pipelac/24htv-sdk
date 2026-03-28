@@ -24,7 +24,7 @@ class UserTest extends TestCase
 
         $user = User::fromArray($data);
 
-        $this->assertInstanceOf('TwentyFourTv\Model\User', $user);
+        $this->assertInstanceOf(User::class, $user);
         $this->assertEquals(42, $user->getId());
         $this->assertEquals('ivan', $user->getUsername());
         $this->assertEquals('+79001234567', $user->getPhone());

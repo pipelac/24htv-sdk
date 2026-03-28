@@ -4,6 +4,8 @@ namespace TwentyFourTv\Tests\Unit\Service;
 
 use TwentyFourTv\Service\DeviceService;
 use PHPUnit\Framework\TestCase;
+use TwentyFourTv\Contract\HttpClientInterface;
+use TwentyFourTv\Exception\ValidationException;
 
 class DeviceServiceTest extends TestCase
 {
@@ -12,7 +14,7 @@ class DeviceServiceTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->httpClient = $this->createMock('TwentyFourTv\Contract\HttpClientInterface');
+        $this->httpClient = $this->createMock(HttpClientInterface::class);
         $this->service = new DeviceService($this->httpClient);
     }
 
@@ -43,7 +45,7 @@ class DeviceServiceTest extends TestCase
 
     public function testGetUserDevicesInvalidThrows()
     {
-        $this->expectException('TwentyFourTv\Exception\ValidationException');
+        $this->expectException(ValidationException::class);
         $this->service->getUserDevices(null);
     }
 }

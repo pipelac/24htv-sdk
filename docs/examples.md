@@ -428,7 +428,7 @@ require_once __DIR__ . '/../vendor/autoload.php';
 
 use TwentyFourTv\ClientFactory;
 
-$client = ClientFactory::create(__DIR__ . '/../24htv.ini', $logger, $db);
+$client = ClientFactory::create(__DIR__ . '/../24htv.ini', $logger);
 
 // === AUTH: определение абонента по IP ===
 $client->callbacks()->setAuthResolver(function ($params) use ($db) {
@@ -512,8 +512,9 @@ $client->callbacks()->setDeleteSubscriptionHandler(function ($params, $body) use
 });
 
 // Обработать запрос и отправить ответ
+use TwentyFourTv\Http\ResponseEmitter;
 $response = $client->handleCallback();
-$response->send();
+ResponseEmitter::emit($response);
 ```
 
 ---

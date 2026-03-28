@@ -66,7 +66,7 @@ class DeviceTest extends TestCase
         $collection = Device::collection($items);
 
         $this->assertCount(2, $collection);
-        $this->assertInstanceOf('TwentyFourTv\Model\Device', $collection[0]);
+        $this->assertInstanceOf(Device::class, $collection[0]);
         $this->assertEquals('dev-1', $collection[0]->getId());
     }
 }

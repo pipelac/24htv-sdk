@@ -8,7 +8,7 @@ use PHPUnit\Framework\TestCase;
 
 class PromoServiceTest extends TestCase
 {
-    /** @var HttpClientInterface|\PHPUnit_Framework_MockObject_MockObject */
+    /** @var HttpClientInterface|\PHPUnit\Framework\MockObject\MockObject */
     private $httpClient;
 
     /** @var PromoService */
@@ -16,7 +16,7 @@ class PromoServiceTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->httpClient = $this->createMock('TwentyFourTv\Contract\HttpClientInterface');
+        $this->httpClient = $this->createMock(HttpClientInterface::class);
         $this->service = new PromoService($this->httpClient);
     }
 

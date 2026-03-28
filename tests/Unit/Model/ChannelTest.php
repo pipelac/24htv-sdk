@@ -20,7 +20,7 @@ class ChannelTest extends TestCase
 
         $channel = Channel::fromArray($data);
 
-        $this->assertInstanceOf('TwentyFourTv\Model\Channel', $channel);
+        $this->assertInstanceOf(Channel::class, $channel);
         $this->assertEquals(15, $channel->getId());
         $this->assertEquals('Первый канал', $channel->getName());
         $this->assertEquals(1, $channel->getNumber());
@@ -68,7 +68,7 @@ class ChannelTest extends TestCase
         $collection = Channel::collection($items);
 
         $this->assertCount(2, $collection);
-        $this->assertInstanceOf('TwentyFourTv\Model\Channel', $collection[0]);
+        $this->assertInstanceOf(Channel::class, $collection[0]);
         $this->assertEquals(1, $collection[0]->getId());
         $this->assertEquals(2, $collection[1]->getId());
     }

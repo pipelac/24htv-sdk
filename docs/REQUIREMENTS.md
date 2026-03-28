@@ -7,28 +7,28 @@
 - [x] **OCP** — добавление новых сервисов без модификации существующего кода
   > 16 интерфейсов в `Contract/`: 5 инфраструктурных + 11 сервисных
 - [x] **LSP** — все реализации интерфейсов полностью взаимозаменяемы
-  > `Client` использует интерфейсы для всех свойств и return-типов. Setters принимают интерфейсы.
+  > `Client` использует интерфейсы для всех свойств и return-типов. `resolveService()` создаёт сервисы, `registerService()` позволяет подменить реализацию.
 - [x] **ISP** — интерфейсы узкие
   > `HttpClientInterface` (5 методов), `LoggerInterface` (4 метода), `ConfigInterface` (getters)
 - [x] **DIP** — зависимость от абстракций
-  > `Client(HttpClientInterface, ConfigInterface, LoggerInterface, DatabaseInterface)`
+  > `Client(HttpClientInterface, ConfigInterface, LoggerInterface = null)`
 - [x] Отсутствие God-классов (>500 строк — проверить обоснованность)
-  > Самый большой — `HttpClient.php` (~460 строк, обосновано: retry + CircuitBreaker + middleware). `Client.php` (~528 строк, обосновано: 11 lazy-сервисов + setters).
+  > Самый большой — `HttpClient.php` (~460 строк, обосновано: retry + CircuitBreaker + middleware). `Client.php` (~385 строк, обосновано: 11 lazy-сервисов через `resolveService()` + Service Registry).
 - [x] Composition over Inheritance (наследование только для исключений и DTO)
   > Наследование: `TwentyFourTvException → leaf`, `AbstractModel → DTO`, `AbstractService → Service`. Всё остальное — композиция.
 - [x] Иммутабельность конфигурации после инициализации
   > `Config` — нет setters, все значения через конструктор + INI-файл.
 - [x] Ленивая инициализация сервисов (lazy loading)
-  > `Client::users()`, `Client::packets()` и т.д. — создание при первом обращении.
+  > `Client::users()`, `Client::packets()` и т.д. — создание при первом обращении через `resolveService()`.
 - [x] Фабрики для создания сложных объектов (Factory pattern)
-  > `ClientFactory::create()` — фабричный метод с опциональными зависимостями.
+  > `ClientFactory::create()` — фабричный метод. `Client::registerService()` — подмена реализаций через кастомные фабрики.
 
 ## 2. Контракты и интерфейсы
 
 - [x] Интерфейсы для всех ключевых зависимостей
   > 16 интерфейсов: `HttpClientInterface`, `ConfigInterface`, `LoggerInterface`, `DatabaseInterface`, `CallbackHandlerInterface`, 11 сервисных интерфейсов.
 - [x] Отсутствие пустых/мёртвых интерфейсов
-  > Все 16 используются в конструкторах, type-hints и PHPDoc.
+  > 16 интерфейсов, все используются в конструкторах, type-hints и PHPDoc.
 - [x] PHPDoc на каждом методе интерфейса с `@param`, `@return`, `@throws`
   > Все методы во всех интерфейсах задокументированы.
 - [x] `@since` аннотации при изменении контрактов
@@ -111,7 +111,7 @@
 - [x] Ленивая инициализация (lazy loading) для сервисов
   > `Client::users()`, `Client::packets()` и т.д. создают сервисы при первом обращении.
 - [x] Кэширование вычислений
-  > Сервисы кэшируются в private-свойствах `Client`.
+  > Сервисы кэшируются в `$services[]` массиве через `Client::resolveService()`.
 - [x] Exponential backoff + jitter для retry-механизма
   > `HttpClient::calculateRetryDelay()` — `pow(2, $attempt) * baseDelay` + `mt_rand() jitter`.
 - [x] Ограничение максимального количества retry
@@ -225,7 +225,7 @@
 - [x] `@since` аннотации при изменении API
   > На всех 60 src-файлах.
 - [x] `@deprecated` для устаревших методов
-  > N/A — нет устаревших методов (проект в стадии 1.0.0).
+  > `CallbackResponse::send()` помечен `@deprecated` в пользу `ResponseEmitter::emit()`.
 
 ## 14. Robustness / Edge Cases
 

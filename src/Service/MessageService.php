@@ -28,7 +28,7 @@ class MessageService extends AbstractService implements MessageServiceInterface
         $this->requireId($userId, 'userId');
 
         return $this->createCollection(
-            'TwentyFourTv\Model\Message',
+            Message::class,
             $this->api->apiGet(sprintf(ApiEndpoints::USER_MESSAGES, $userId))
         );
     }
@@ -48,7 +48,7 @@ class MessageService extends AbstractService implements MessageServiceInterface
         $this->requireId($userId, 'userId');
 
         return $this->createModel(
-            'TwentyFourTv\Model\Message',
+            Message::class,
             $this->api->apiGet(sprintf(ApiEndpoints::USER_MESSAGE_BY_ID, $userId, $messageId))
         );
     }
@@ -68,7 +68,7 @@ class MessageService extends AbstractService implements MessageServiceInterface
         $this->requireId($userId, 'userId');
 
         return $this->createModel(
-            'TwentyFourTv\Model\Message',
+            Message::class,
             $this->api->apiPost(sprintf(ApiEndpoints::USER_MESSAGES, $userId), $data)
         );
     }

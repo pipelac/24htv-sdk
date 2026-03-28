@@ -10,7 +10,7 @@ class QueryBuilderTest extends TestCase
     public function testCreateReturnsInstance()
     {
         $qb = QueryBuilder::create();
-        $this->assertInstanceOf('TwentyFourTv\Util\QueryBuilder', $qb);
+        $this->assertInstanceOf(QueryBuilder::class, $qb);
     }
 
     public function testEmptyBuilderReturnsEmptyArray()

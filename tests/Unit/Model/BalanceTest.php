@@ -43,7 +43,7 @@ class BalanceTest extends TestCase
         $collection = Balance::collection($items);
 
         $this->assertCount(2, $collection);
-        $this->assertInstanceOf('TwentyFourTv\Model\Balance', $collection[0]);
+        $this->assertInstanceOf(Balance::class, $collection[0]);
         $this->assertEquals('100', $collection[0]->getAmount());
     }
 }

@@ -26,7 +26,7 @@ class TagService extends AbstractService implements TagServiceInterface
     public function getAll(array $options = [])
     {
         return $this->createCollection(
-            'TwentyFourTv\Model\Tag',
+            Tag::class,
             $this->api->apiGet(ApiEndpoints::TAGS, $options)
         );
     }
@@ -43,7 +43,7 @@ class TagService extends AbstractService implements TagServiceInterface
     public function create(array $data)
     {
         return $this->createModel(
-            'TwentyFourTv\Model\Tag',
+            Tag::class,
             $this->api->apiPost(ApiEndpoints::TAGS, $data)
         );
     }
@@ -62,7 +62,7 @@ class TagService extends AbstractService implements TagServiceInterface
         $this->requireId($tagId, 'tagId');
 
         return $this->createModel(
-            'TwentyFourTv\Model\Tag',
+            Tag::class,
             $this->api->apiGet(sprintf(ApiEndpoints::TAG_BY_ID, $tagId))
         );
     }
@@ -82,7 +82,7 @@ class TagService extends AbstractService implements TagServiceInterface
         $this->requireId($tagId, 'tagId');
 
         return $this->createModel(
-            'TwentyFourTv\Model\Tag',
+            Tag::class,
             $this->api->apiPatch(sprintf(ApiEndpoints::TAG_BY_ID, $tagId), $data)
         );
     }

@@ -27,7 +27,7 @@ abstract class AbstractModel
     /**
      * @param array $data Данные от API
      */
-    public function __construct(array $data = [])
+    protected function __construct(array $data = [])
     {
         $this->rawData = $data;
         $this->hydrate($data);

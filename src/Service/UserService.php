@@ -53,7 +53,7 @@ class UserService extends AbstractService implements UserServiceInterface
         ]);
 
         return $this->createModel(
-            'TwentyFourTv\Model\User',
+            User::class,
             $this->api->apiPost(ApiEndpoints::USERS, $data)
         );
     }
@@ -73,7 +73,7 @@ class UserService extends AbstractService implements UserServiceInterface
         $this->requireId($userId, 'userId');
 
         return $this->createModel(
-            'TwentyFourTv\Model\User',
+            User::class,
             $this->api->apiPatch(sprintf(ApiEndpoints::USER_BY_ID, $userId), $data)
         );
     }
@@ -92,7 +92,7 @@ class UserService extends AbstractService implements UserServiceInterface
         $this->requireId($userId, 'userId');
 
         return $this->createModel(
-            'TwentyFourTv\Model\User',
+            User::class,
             $this->api->apiGet(sprintf(ApiEndpoints::USER_BY_ID, $userId))
         );
     }
@@ -116,7 +116,7 @@ class UserService extends AbstractService implements UserServiceInterface
     public function getAll(array $options = [])
     {
         return $this->createCollection(
-            'TwentyFourTv\Model\User',
+            User::class,
             $this->api->apiGet(ApiEndpoints::USERS, $options)
         );
     }
@@ -133,7 +133,7 @@ class UserService extends AbstractService implements UserServiceInterface
     public function findByPhone($phone)
     {
         return $this->createCollection(
-            'TwentyFourTv\Model\User',
+            User::class,
             $this->api->apiGet(ApiEndpoints::USERS, ['phone' => $phone])
         );
     }
@@ -150,7 +150,7 @@ class UserService extends AbstractService implements UserServiceInterface
     public function findByUsername($username)
     {
         return $this->createCollection(
-            'TwentyFourTv\Model\User',
+            User::class,
             $this->api->apiGet(ApiEndpoints::USERS, ['username' => $username])
         );
     }
@@ -167,7 +167,7 @@ class UserService extends AbstractService implements UserServiceInterface
     public function findByProviderUid($providerUid)
     {
         return $this->createCollection(
-            'TwentyFourTv\Model\User',
+            User::class,
             $this->api->apiGet(ApiEndpoints::USERS, ['provider_uid' => $providerUid])
         );
     }
@@ -184,7 +184,7 @@ class UserService extends AbstractService implements UserServiceInterface
     public function findByEmail($email)
     {
         return $this->createCollection(
-            'TwentyFourTv\Model\User',
+            User::class,
             $this->api->apiGet(ApiEndpoints::USERS, ['email' => $email])
         );
     }
@@ -203,7 +203,7 @@ class UserService extends AbstractService implements UserServiceInterface
     public function search($query, $limit = 20, $offset = 0)
     {
         return $this->createCollection(
-            'TwentyFourTv\Model\User',
+            User::class,
             $this->api->apiGet(ApiEndpoints::USERS, [
                 'search' => $query,
                 'limit'  => $limit,
@@ -228,7 +228,7 @@ class UserService extends AbstractService implements UserServiceInterface
         $this->log('warning', '24HTV: блокировка пользователя', ['userId' => $userId]);
 
         return $this->createModel(
-            'TwentyFourTv\Model\User',
+            User::class,
             $this->api->apiPatch(sprintf(ApiEndpoints::USER_BY_ID, $userId), ['is_active' => false])
         );
     }
@@ -247,7 +247,7 @@ class UserService extends AbstractService implements UserServiceInterface
         $this->requireId($userId, 'userId');
 
         return $this->createModel(
-            'TwentyFourTv\Model\User',
+            User::class,
             $this->api->apiPatch(sprintf(ApiEndpoints::USER_BY_ID, $userId), ['is_active' => true])
         );
     }

@@ -44,9 +44,6 @@ use TwentyFourTv\ClientFactory;
 
 // Создание клиента (рекомендуемый способ)
 $client = ClientFactory::create('/path/to/24htv.ini', $logger);
-
-// С подключением к БД (для обратной интеграции)
-$client = ClientFactory::create('/path/to/24htv.ini', $logger, $db);
 ```
 
 ## 4. Основные операции
@@ -121,7 +118,13 @@ $client->callbacks()->setAuthResolver(function ($params) {
 
 // Обработка запроса и отправка ответа
 $response = $client->handleCallback();
-$response->send();
+
+// Рекомендуемый способ (SRP: отделяет I/O от DTO)
+use TwentyFourTv\Http\ResponseEmitter;
+ResponseEmitter::emit($response);
+
+// Альтернативный (deprecated)
+// $response->send();
 ```
 
 Настройте Nginx для маршрутизации:

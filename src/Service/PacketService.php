@@ -34,7 +34,7 @@ class PacketService extends AbstractService implements PacketServiceInterface
     public function getAll(array $options = [])
     {
         return $this->createCollection(
-            'TwentyFourTv\Model\Packet',
+            Packet::class,
             $this->api->apiGet(ApiEndpoints::PACKETS, $options)
         );
     }
@@ -54,7 +54,7 @@ class PacketService extends AbstractService implements PacketServiceInterface
         $this->requireId($packetId, 'packetId');
 
         return $this->createModel(
-            'TwentyFourTv\Model\Packet',
+            Packet::class,
             $this->api->apiGet(sprintf(ApiEndpoints::PACKET_BY_ID, $packetId), $options)
         );
     }
@@ -76,7 +76,7 @@ class PacketService extends AbstractService implements PacketServiceInterface
         }
 
         return $this->createCollection(
-            'TwentyFourTv\Model\Packet',
+            Packet::class,
             $this->api->apiGet(ApiEndpoints::PACKETS, $options)
         );
     }
@@ -93,7 +93,7 @@ class PacketService extends AbstractService implements PacketServiceInterface
     public function getFlatPackets(array $options = [])
     {
         return $this->createCollection(
-            'TwentyFourTv\Model\Packet',
+            Packet::class,
             $this->api->apiGet(ApiEndpoints::PACKETS_FLAT, $options)
         );
     }
@@ -211,7 +211,7 @@ class PacketService extends AbstractService implements PacketServiceInterface
         $this->requireId($userId, 'userId');
 
         return $this->createCollection(
-            'TwentyFourTv\Model\Packet',
+            Packet::class,
             $this->api->apiGet(sprintf(ApiEndpoints::USER_PACKETS, $userId))
         );
     }
@@ -232,7 +232,7 @@ class PacketService extends AbstractService implements PacketServiceInterface
         $this->requireId($packetId, 'packetId');
 
         return $this->createModel(
-            'TwentyFourTv\Model\Packet',
+            Packet::class,
             $this->api->apiGet(sprintf(ApiEndpoints::USER_PACKET_BY_ID, $userId, $packetId))
         );
     }
@@ -256,7 +256,7 @@ class PacketService extends AbstractService implements PacketServiceInterface
         ]);
 
         return $this->createModel(
-            'TwentyFourTv\Model\Packet',
+            Packet::class,
             $this->api->apiPost(sprintf(ApiEndpoints::USER_PACKETS, $userId), $data)
         );
     }
@@ -278,7 +278,7 @@ class PacketService extends AbstractService implements PacketServiceInterface
         $this->requireId($packetId, 'packetId');
 
         return $this->createModel(
-            'TwentyFourTv\Model\Packet',
+            Packet::class,
             $this->api->apiPatch(sprintf(ApiEndpoints::USER_PACKET_BY_ID, $userId, $packetId), $data)
         );
     }

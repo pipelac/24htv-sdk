@@ -70,7 +70,10 @@ class CallbackResponse
     }
 
     /**
-     * Отправить ответ клиенту (для обратной совместимости)
+     * Отправить ответ клиенту
+     *
+     * @deprecated Используйте ResponseEmitter::emit($response) вместо прямого вызова
+     * @see \TwentyFourTv\Http\ResponseEmitter::emit()
      *
      * @return void
      */

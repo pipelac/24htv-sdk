@@ -61,7 +61,7 @@ class TransactionTest extends TestCase
         $collection = Transaction::collection($items);
 
         $this->assertCount(2, $collection);
-        $this->assertInstanceOf('TwentyFourTv\Model\Transaction', $collection[0]);
+        $this->assertInstanceOf(Transaction::class, $collection[0]);
         $this->assertEquals('credit', $collection[0]->getType());
         $this->assertEquals('debit', $collection[1]->getType());
     }

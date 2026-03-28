@@ -5,6 +5,9 @@ namespace TwentyFourTv\Tests\Unit\Callback;
 use TwentyFourTv\Callback\CallbackHandler;
 use TwentyFourTv\Callback\CallbackResponse;
 use PHPUnit\Framework\TestCase;
+use TwentyFourTv\Config;
+use TwentyFourTv\Contract\AuthResolverInterface;
+use TwentyFourTv\Contract\BalanceResolverInterface;
 
 class CallbackHandlerTest extends TestCase
 {
@@ -14,7 +17,7 @@ class CallbackHandlerTest extends TestCase
     protected function setUp(): void
     {
         // Создаём простой мок Config через анонимный класс-обёртку для PHP 5.6
-        $this->config = $this->getMockBuilder('TwentyFourTv\Config')
+        $this->config = $this->getMockBuilder(Config::class)
             ->disableOriginalConstructor()
             ->getMock();
 
@@ -31,7 +34,7 @@ class CallbackHandlerTest extends TestCase
         });
 
         $response = $this->handler->handle('/auth', ['ip' => '10.0.0.1']);
-        $this->assertInstanceOf('TwentyFourTv\Callback\CallbackResponse', $response);
+        $this->assertInstanceOf(CallbackResponse::class, $response);
         $this->assertTrue($response->isSuccess());
         $this->assertEquals('12345', $response->getData()['provider_uid']);
     }
@@ -115,7 +118,7 @@ class CallbackHandlerTest extends TestCase
 
     public function testHandleAuthWithResolverInterface()
     {
-        $resolver = $this->getMockBuilder('TwentyFourTv\Contract\AuthResolverInterface')->getMock();
+        $resolver = $this->getMockBuilder(AuthResolverInterface::class)->getMock();
         $resolver->method('__invoke')->willReturn([
             'result'       => 'success',
             'provider_uid' => '99999',
@@ -129,7 +132,7 @@ class CallbackHandlerTest extends TestCase
 
     public function testHandleBalanceWithResolverInterface()
     {
-        $resolver = $this->getMockBuilder('TwentyFourTv\Contract\BalanceResolverInterface')->getMock();
+        $resolver = $this->getMockBuilder(BalanceResolverInterface::class)->getMock();
         $resolver->method('__invoke')->willReturn([
             'result'  => 'success',
             'balance' => '750.00',

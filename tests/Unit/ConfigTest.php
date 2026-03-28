@@ -2,8 +2,9 @@
 
 namespace TwentyFourTv\Tests\Unit;
 
-use TwentyFourTv\Config;
 use PHPUnit\Framework\TestCase;
+use TwentyFourTv\Config;
+use TwentyFourTv\Exception\ConfigException;
 
 class ConfigTest extends TestCase
 {
@@ -70,7 +71,7 @@ class ConfigTest extends TestCase
 
         $config = new Config($this->tmpFile);
 
-        $this->expectException('TwentyFourTv\\Exception\\ConfigException');
+        $this->expectException(ConfigException::class);
         $config->get('nonexistent.key');
     }
 
@@ -80,13 +81,13 @@ class ConfigTest extends TestCase
             'api' => ['base_url' => 'https://example.com'],
         ]);
 
-        $this->expectException('TwentyFourTv\\Exception\\ConfigException');
+        $this->expectException(ConfigException::class);
         new Config($this->tmpFile);
     }
 
     public function testMissingFileThrows()
     {
-        $this->expectException('TwentyFourTv\\Exception\\ConfigException');
+        $this->expectException(ConfigException::class);
         new Config('/nonexistent/path/config.ini');
     }
 

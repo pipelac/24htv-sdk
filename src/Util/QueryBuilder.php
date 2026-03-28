@@ -22,7 +22,7 @@ namespace TwentyFourTv\Util;
  *
  * @since 1.0.0
  */
-class QueryBuilder
+final class QueryBuilder
 {
     /** @var array */
     private $params = [];

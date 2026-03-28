@@ -8,7 +8,7 @@ use PHPUnit\Framework\TestCase;
 
 class ContractServiceTest extends TestCase
 {
-    /** @var HttpClientInterface|\PHPUnit_Framework_MockObject_MockObject */
+    /** @var HttpClientInterface|\PHPUnit\Framework\MockObject\MockObject */
     private $httpClient;
 
     /** @var ContractService */
@@ -16,7 +16,7 @@ class ContractServiceTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->httpClient = $this->createMock('TwentyFourTv\Contract\HttpClientInterface');
+        $this->httpClient = $this->createMock(HttpClientInterface::class);
         $this->service = new ContractService($this->httpClient);
     }
 

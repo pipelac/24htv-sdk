@@ -8,12 +8,12 @@ use PHPUnit\Framework\TestCase;
 
 class HttpClientTest extends TestCase
 {
-    /** @var ConfigInterface|\PHPUnit_Framework_MockObject_MockObject */
+    /** @var ConfigInterface|\PHPUnit\Framework\MockObject\MockObject */
     private $config;
 
     protected function setUp(): void
     {
-        $this->config = $this->createMock('TwentyFourTv\Contract\ConfigInterface');
+        $this->config = $this->createMock(ConfigInterface::class);
         $this->config->method('getToken')->willReturn('test_token_12345');
         $this->config->method('getBaseUrl')->willReturn('https://provapi.24h.tv/v2');
         $this->config->method('getTimeout')->willReturn(10);

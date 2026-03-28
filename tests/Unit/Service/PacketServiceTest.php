@@ -5,10 +5,12 @@ namespace TwentyFourTv\Tests\Unit\Service;
 use TwentyFourTv\Contract\HttpClientInterface;
 use TwentyFourTv\Service\PacketService;
 use PHPUnit\Framework\TestCase;
+use TwentyFourTv\Exception\ValidationException;
+use TwentyFourTv\Model\Packet;
 
 class PacketServiceTest extends TestCase
 {
-    /** @var HttpClientInterface|\PHPUnit_Framework_MockObject_MockObject */
+    /** @var HttpClientInterface|\PHPUnit\Framework\MockObject\MockObject */
     private $httpClient;
 
     /** @var PacketService */
@@ -16,7 +18,7 @@ class PacketServiceTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->httpClient = $this->createMock('TwentyFourTv\Contract\HttpClientInterface');
+        $this->httpClient = $this->createMock(HttpClientInterface::class);
         $this->service = new PacketService($this->httpClient);
     }
 
@@ -30,7 +32,7 @@ class PacketServiceTest extends TestCase
         $result = $this->service->getAll();
         $this->assertIsArray($result);
         $this->assertCount(1, $result);
-        $this->assertInstanceOf('TwentyFourTv\Model\Packet', $result[0]);
+        $this->assertInstanceOf(Packet::class, $result[0]);
         $this->assertEquals(80, $result[0]->getId());
     }
 
@@ -45,7 +47,7 @@ class PacketServiceTest extends TestCase
 
     public function testGetByIdInvalidThrows()
     {
-        $this->expectException('TwentyFourTv\Exception\ValidationException');
+        $this->expectException(ValidationException::class);
         $this->service->getById(null);
     }
 

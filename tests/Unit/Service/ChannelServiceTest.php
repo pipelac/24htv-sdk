@@ -4,6 +4,8 @@ namespace TwentyFourTv\Tests\Unit\Service;
 
 use TwentyFourTv\Service\ChannelService;
 use PHPUnit\Framework\TestCase;
+use TwentyFourTv\Contract\HttpClientInterface;
+use TwentyFourTv\Exception\ValidationException;
 
 class ChannelServiceTest extends TestCase
 {
@@ -12,7 +14,7 @@ class ChannelServiceTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->httpClient = $this->createMock('TwentyFourTv\Contract\HttpClientInterface');
+        $this->httpClient = $this->createMock(HttpClientInterface::class);
         $this->service = new ChannelService($this->httpClient);
     }
 
@@ -72,7 +74,7 @@ class ChannelServiceTest extends TestCase
 
     public function testGetByIdInvalidThrows()
     {
-        $this->expectException('TwentyFourTv\Exception\ValidationException');
+        $this->expectException(ValidationException::class);
         $this->service->getById(null);
     }
 }

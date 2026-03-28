@@ -45,6 +45,6 @@ class TagTest extends TestCase
         $collection = Tag::collection($items);
 
         $this->assertCount(2, $collection);
-        $this->assertInstanceOf('TwentyFourTv\Model\Tag', $collection[0]);
+        $this->assertInstanceOf(Tag::class, $collection[0]);
     }
 }

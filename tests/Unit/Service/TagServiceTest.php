@@ -4,6 +4,7 @@ namespace TwentyFourTv\Tests\Unit\Service;
 
 use TwentyFourTv\Service\TagService;
 use PHPUnit\Framework\TestCase;
+use TwentyFourTv\Contract\HttpClientInterface;
 
 class TagServiceTest extends TestCase
 {
@@ -12,7 +13,7 @@ class TagServiceTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->httpClient = $this->createMock('TwentyFourTv\Contract\HttpClientInterface');
+        $this->httpClient = $this->createMock(HttpClientInterface::class);
         $this->service = new TagService($this->httpClient);
     }
 

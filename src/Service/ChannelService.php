@@ -26,7 +26,7 @@ class ChannelService extends AbstractService implements ChannelServiceInterface
     public function getAll(array $options = [])
     {
         return $this->createCollection(
-            'TwentyFourTv\Model\Channel',
+            Channel::class,
             $this->api->apiGet(ApiEndpoints::CHANNELS, $options)
         );
     }
@@ -45,7 +45,7 @@ class ChannelService extends AbstractService implements ChannelServiceInterface
         $this->requireId($channelId, 'channelId');
 
         return $this->createModel(
-            'TwentyFourTv\Model\Channel',
+            Channel::class,
             $this->api->apiGet(sprintf(ApiEndpoints::CHANNEL_BY_ID, $channelId))
         );
     }

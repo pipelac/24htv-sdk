@@ -38,7 +38,7 @@ class SubscriptionService extends AbstractService implements SubscriptionService
         $this->requireId($userId, 'userId');
 
         return $this->createCollection(
-            'TwentyFourTv\Model\Subscription',
+            Subscription::class,
             $this->api->apiGet(sprintf(ApiEndpoints::USER_SUBSCRIPTIONS, $userId), $options)
         );
     }
@@ -58,7 +58,7 @@ class SubscriptionService extends AbstractService implements SubscriptionService
         $this->requireId($userId, 'userId');
 
         return $this->createCollection(
-            'TwentyFourTv\Model\Subscription',
+            Subscription::class,
             $this->api->apiGet(sprintf(ApiEndpoints::USER_SUBSCRIPTIONS_CURRENT, $userId), $options)
         );
     }
@@ -77,7 +77,7 @@ class SubscriptionService extends AbstractService implements SubscriptionService
         $this->requireId($userId, 'userId');
 
         return $this->createCollection(
-            'TwentyFourTv\Model\Subscription',
+            Subscription::class,
             $this->api->apiGet(sprintf(ApiEndpoints::USER_FUTURES, $userId))
         );
     }
@@ -98,7 +98,7 @@ class SubscriptionService extends AbstractService implements SubscriptionService
         $this->requireId($userId, 'userId');
 
         return $this->createModel(
-            'TwentyFourTv\Model\Subscription',
+            Subscription::class,
             $this->api->apiGet(sprintf(ApiEndpoints::USER_SUBSCRIPTION_BY_ID, $userId, $subscriptionId), $options)
         );
     }
@@ -174,7 +174,7 @@ class SubscriptionService extends AbstractService implements SubscriptionService
         $this->requireId($userId, 'userId');
 
         return $this->createModel(
-            'TwentyFourTv\Model\Subscription',
+            Subscription::class,
             $this->api->apiPatch(sprintf(ApiEndpoints::USER_SUBSCRIPTION_BY_ID, $userId, $subscriptionId), $data)
         );
     }

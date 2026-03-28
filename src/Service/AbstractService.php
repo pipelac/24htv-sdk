@@ -18,7 +18,7 @@ use TwentyFourTv\Model\AbstractModel;
  * {
  *     public function register(array $data) {
  *         $this->requireFields($data, ['username', 'phone']);
- *         return $this->createModel('TwentyFourTv\Model\User',
+ *         return $this->createModel(User::class,
  *             $this->api->apiPost('/users', $data));
  *     }
  * }

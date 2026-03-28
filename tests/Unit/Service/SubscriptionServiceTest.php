@@ -5,10 +5,11 @@ namespace TwentyFourTv\Tests\Unit\Service;
 use TwentyFourTv\Contract\HttpClientInterface;
 use TwentyFourTv\Service\SubscriptionService;
 use PHPUnit\Framework\TestCase;
+use TwentyFourTv\Exception\ValidationException;
 
 class SubscriptionServiceTest extends TestCase
 {
-    /** @var HttpClientInterface|\PHPUnit_Framework_MockObject_MockObject */
+    /** @var HttpClientInterface|\PHPUnit\Framework\MockObject\MockObject */
     private $httpClient;
 
     /** @var SubscriptionService */
@@ -16,7 +17,7 @@ class SubscriptionServiceTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->httpClient = $this->createMock('TwentyFourTv\Contract\HttpClientInterface');
+        $this->httpClient = $this->createMock(HttpClientInterface::class);
         $this->service = new SubscriptionService($this->httpClient);
     }
 
@@ -88,7 +89,7 @@ class SubscriptionServiceTest extends TestCase
 
     public function testGetByIdInvalidThrows()
     {
-        $this->expectException('TwentyFourTv\Exception\ValidationException');
+        $this->expectException(ValidationException::class);
         $this->service->getAll(null);
     }
 }

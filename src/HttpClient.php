@@ -37,7 +37,7 @@ use TwentyFourTv\Util\TokenMasker;
 class HttpClient implements HttpClientInterface
 {
     /** @var int[] Статусы при которых выполняется повторный запрос */
-    private static $RETRYABLE_STATUSES = [429, 500, 502, 503, 504];
+    private static $retryableStatuses = [429, 500, 502, 503, 504];
 
     /** @var ConfigInterface */
     private $config;
@@ -249,7 +249,7 @@ class HttpClient implements HttpClientInterface
                 }
 
                 // Retryable ошибки
-                if (in_array($httpCode, self::$RETRYABLE_STATUSES) && $attempt < $this->maxRetries) {
+                if (in_array($httpCode, self::$retryableStatuses) && $attempt < $this->maxRetries) {
                     $lastException = $this->createException($method, $endpoint, $httpCode, $jsonData, $responseBody);
                     $lastHeaders = isset($result['headers']) ? $result['headers'] : [];
                     $attempt++;
@@ -321,7 +321,7 @@ class HttpClient implements HttpClientInterface
                 case 'POST':
                     curl_setopt($ch, CURLOPT_POST, true);
                     if ($body !== null) {
-                        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($body));
+                        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($body, JSON_UNESCAPED_UNICODE));
                     }
                     break;
 
@@ -330,7 +330,7 @@ class HttpClient implements HttpClientInterface
                 case 'DELETE':
                     curl_setopt($ch, CURLOPT_CUSTOMREQUEST, strtoupper($method));
                     if ($body !== null) {
-                        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($body));
+                        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($body, JSON_UNESCAPED_UNICODE));
                     }
                     break;
             }

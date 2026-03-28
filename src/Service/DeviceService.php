@@ -26,7 +26,7 @@ class DeviceService extends AbstractService implements DeviceServiceInterface
     public function getAll(array $options = [])
     {
         return $this->createCollection(
-            'TwentyFourTv\Model\Device',
+            Device::class,
             $this->api->apiGet(ApiEndpoints::DEVICES, $options)
         );
     }
@@ -43,7 +43,7 @@ class DeviceService extends AbstractService implements DeviceServiceInterface
     public function create(array $data)
     {
         return $this->createModel(
-            'TwentyFourTv\Model\Device',
+            Device::class,
             $this->api->apiPost(ApiEndpoints::DEVICES, $data)
         );
     }
@@ -62,7 +62,7 @@ class DeviceService extends AbstractService implements DeviceServiceInterface
         $this->requireId($userId, 'userId');
 
         return $this->createCollection(
-            'TwentyFourTv\Model\Device',
+            Device::class,
             $this->api->apiGet(sprintf(ApiEndpoints::USER_DEVICES, $userId))
         );
     }
@@ -82,7 +82,7 @@ class DeviceService extends AbstractService implements DeviceServiceInterface
         $this->requireId($userId, 'userId');
 
         return $this->createModel(
-            'TwentyFourTv\Model\Device',
+            Device::class,
             $this->api->apiGet(sprintf(ApiEndpoints::USER_DEVICE_BY_ID, $userId, $deviceId))
         );
     }
@@ -102,7 +102,7 @@ class DeviceService extends AbstractService implements DeviceServiceInterface
         $this->requireId($userId, 'userId');
 
         return $this->createModel(
-            'TwentyFourTv\Model\Device',
+            Device::class,
             $this->api->apiGet(sprintf(ApiEndpoints::USER_DEVICE_BY_TOKEN, $userId), [
                 'access_token' => $accessToken,
             ])
