@@ -2,8 +2,8 @@
 
 namespace TwentyFourTv\Tests\Unit\Model;
 
-use TwentyFourTv\Model\Packet;
 use PHPUnit\Framework\TestCase;
+use TwentyFourTv\Model\Packet;
 
 class PacketTest extends TestCase
 {

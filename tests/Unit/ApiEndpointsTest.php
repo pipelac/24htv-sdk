@@ -2,8 +2,8 @@
 
 namespace TwentyFourTv\Tests\Unit;
 
-use TwentyFourTv\ApiEndpoints;
 use PHPUnit\Framework\TestCase;
+use TwentyFourTv\ApiEndpoints;
 
 class ApiEndpointsTest extends TestCase
 {

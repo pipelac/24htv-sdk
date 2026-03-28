@@ -2,10 +2,10 @@
 
 namespace TwentyFourTv\Tests\Unit\Service;
 
-use TwentyFourTv\Service\ChannelService;
 use PHPUnit\Framework\TestCase;
 use TwentyFourTv\Contract\HttpClientInterface;
 use TwentyFourTv\Exception\ValidationException;
+use TwentyFourTv\Service\ChannelService;
 
 class ChannelServiceTest extends TestCase
 {

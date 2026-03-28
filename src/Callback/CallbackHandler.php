@@ -2,10 +2,10 @@
 
 namespace TwentyFourTv\Callback;
 
+use Exception;
 use TwentyFourTv\Contract\CallbackHandlerInterface;
 use TwentyFourTv\Contract\ConfigInterface;
 use TwentyFourTv\Contract\LoggerInterface;
-use Exception;
 
 /**
  * Обработчик обратной интеграции (callback-запросы от 24ТВ к провайдеру)

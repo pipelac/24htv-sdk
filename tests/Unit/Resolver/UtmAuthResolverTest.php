@@ -2,10 +2,10 @@
 
 namespace TwentyFourTv\Tests\Unit\Resolver;
 
-use TwentyFourTv\Resolver\UtmAuthResolver;
 use PHPUnit\Framework\TestCase;
 use TwentyFourTv\Contract\DatabaseInterface;
 use TwentyFourTv\Contract\LoggerInterface;
+use TwentyFourTv\Resolver\UtmAuthResolver;
 
 class UtmAuthResolverTest extends TestCase
 {

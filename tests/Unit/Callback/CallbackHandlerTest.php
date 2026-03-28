@@ -2,9 +2,9 @@
 
 namespace TwentyFourTv\Tests\Unit\Callback;
 
+use PHPUnit\Framework\TestCase;
 use TwentyFourTv\Callback\CallbackHandler;
 use TwentyFourTv\Callback\CallbackResponse;
-use PHPUnit\Framework\TestCase;
 use TwentyFourTv\Config;
 use TwentyFourTv\Contract\AuthResolverInterface;
 use TwentyFourTv\Contract\BalanceResolverInterface;

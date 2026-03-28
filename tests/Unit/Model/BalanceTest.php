@@ -2,8 +2,8 @@
 
 namespace TwentyFourTv\Tests\Unit\Model;
 
-use TwentyFourTv\Model\Balance;
 use PHPUnit\Framework\TestCase;
+use TwentyFourTv\Model\Balance;
 
 class BalanceTest extends TestCase
 {

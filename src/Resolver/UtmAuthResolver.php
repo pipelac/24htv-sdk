@@ -2,10 +2,10 @@
 
 namespace TwentyFourTv\Resolver;
 
+use Exception;
 use TwentyFourTv\Contract\AuthResolverInterface;
 use TwentyFourTv\Contract\DatabaseInterface;
 use TwentyFourTv\Contract\LoggerInterface;
-use Exception;
 
 /**
  * Резолвер авторизации для биллинга UTM5

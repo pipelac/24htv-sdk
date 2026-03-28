@@ -268,7 +268,7 @@ class SubscriptionService extends AbstractService implements SubscriptionService
      * Поставить пользователя на паузу (по официально документированному эндпоинту)
      *
      * @param int   $userId
-     * @param array $data Отправка дополнительных данных (например дат старта и окончания)
+     * @param array $data   Отправка дополнительных данных (например дат старта и окончания)
      *
      * @throws TwentyFourTvException
      *

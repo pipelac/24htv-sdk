@@ -2,10 +2,10 @@
 
 namespace TwentyFourTv\Tests\Unit\Resolver;
 
-use TwentyFourTv\Resolver\UtmBalanceResolver;
 use PHPUnit\Framework\TestCase;
 use TwentyFourTv\Contract\DatabaseInterface;
 use TwentyFourTv\Contract\LoggerInterface;
+use TwentyFourTv\Resolver\UtmBalanceResolver;
 
 class UtmBalanceResolverTest extends TestCase
 {

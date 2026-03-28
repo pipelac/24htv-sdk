@@ -2,8 +2,8 @@
 
 namespace TwentyFourTv\Tests\Unit\Callback;
 
-use TwentyFourTv\Callback\CallbackResponse;
 use PHPUnit\Framework\TestCase;
+use TwentyFourTv\Callback\CallbackResponse;
 
 class CallbackResponseTest extends TestCase
 {

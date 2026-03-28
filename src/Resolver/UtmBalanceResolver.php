@@ -2,10 +2,10 @@
 
 namespace TwentyFourTv\Resolver;
 
+use Exception;
 use TwentyFourTv\Contract\BalanceResolverInterface;
 use TwentyFourTv\Contract\DatabaseInterface;
 use TwentyFourTv\Contract\LoggerInterface;
-use Exception;
 
 /**
  * Резолвер баланса для биллинга UTM5

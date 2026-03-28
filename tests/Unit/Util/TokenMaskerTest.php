@@ -2,8 +2,8 @@
 
 namespace TwentyFourTv\Tests\Unit\Util;
 
-use TwentyFourTv\Util\TokenMasker;
 use PHPUnit\Framework\TestCase;
+use TwentyFourTv\Util\TokenMasker;
 
 class TokenMaskerTest extends TestCase
 {

@@ -2,8 +2,8 @@
 
 namespace TwentyFourTv\Tests\Unit\Model;
 
-use TwentyFourTv\Model\Message;
 use PHPUnit\Framework\TestCase;
+use TwentyFourTv\Model\Message;
 
 class MessageTest extends TestCase
 {

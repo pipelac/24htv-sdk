@@ -2,10 +2,10 @@
 
 namespace TwentyFourTv\Tests\Unit\Service;
 
-use TwentyFourTv\Contract\HttpClientInterface;
-use TwentyFourTv\Service\SubscriptionService;
 use PHPUnit\Framework\TestCase;
+use TwentyFourTv\Contract\HttpClientInterface;
 use TwentyFourTv\Exception\ValidationException;
+use TwentyFourTv\Service\SubscriptionService;
 
 class SubscriptionServiceTest extends TestCase
 {

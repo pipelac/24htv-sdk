@@ -2,8 +2,8 @@
 
 namespace TwentyFourTv\Tests\Unit\Model;
 
-use TwentyFourTv\Model\Tag;
 use PHPUnit\Framework\TestCase;
+use TwentyFourTv\Model\Tag;
 
 class TagTest extends TestCase
 {

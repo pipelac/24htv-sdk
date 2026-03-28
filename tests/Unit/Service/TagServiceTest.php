@@ -2,9 +2,9 @@
 
 namespace TwentyFourTv\Tests\Unit\Service;
 
-use TwentyFourTv\Service\TagService;
 use PHPUnit\Framework\TestCase;
 use TwentyFourTv\Contract\HttpClientInterface;
+use TwentyFourTv\Service\TagService;
 
 class TagServiceTest extends TestCase
 {

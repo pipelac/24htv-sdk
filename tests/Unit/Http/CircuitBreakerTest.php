@@ -2,8 +2,8 @@
 
 namespace TwentyFourTv\Tests\Unit\Http;
 
-use TwentyFourTv\Http\CircuitBreaker;
 use PHPUnit\Framework\TestCase;
+use TwentyFourTv\Http\CircuitBreaker;
 
 class CircuitBreakerTest extends TestCase
 {

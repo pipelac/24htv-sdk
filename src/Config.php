@@ -26,19 +26,19 @@ use TwentyFourTv\Util\TokenMasker;
 class Config implements ConfigInterface
 {
     /** @var string Путь по умолчанию к INI-файлу */
-    const DEFAULT_CONFIG_PATH = 'cfg/24htv.ini';
+    public const DEFAULT_CONFIG_PATH = 'cfg/24htv.ini';
 
     /** @var string Base URL API по умолчанию */
-    const DEFAULT_BASE_URL = 'https://provapi.24h.tv/v2';
+    public const DEFAULT_BASE_URL = 'https://provapi.24h.tv/v2';
 
     /** @var int Таймаут запроса по умолчанию (сек) */
-    const DEFAULT_TIMEOUT = 10;
+    public const DEFAULT_TIMEOUT = 10;
 
     /** @var int Таймаут соединения по умолчанию (сек) */
-    const DEFAULT_CONNECT_TIMEOUT = 5;
+    public const DEFAULT_CONNECT_TIMEOUT = 5;
 
     /** @var int Макс. количество повторов запроса по умолчанию */
-    const DEFAULT_MAX_RETRIES = 2;
+    public const DEFAULT_MAX_RETRIES = 2;
 
     /** @var array Загруженные данные конфигурации */
     private $data = [];

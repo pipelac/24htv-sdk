@@ -2,8 +2,8 @@
 
 namespace TwentyFourTv\Tests\Unit\Util;
 
-use TwentyFourTv\Util\QueryBuilder;
 use PHPUnit\Framework\TestCase;
+use TwentyFourTv\Util\QueryBuilder;
 
 class QueryBuilderTest extends TestCase
 {

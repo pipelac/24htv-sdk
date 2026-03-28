@@ -72,9 +72,9 @@ class Client
     private $callbackHandler;
 
     /**
-     * @param HttpClientInterface $httpClient HTTP-транспорт
-     * @param ConfigInterface     $config     Конфигурация SDK
-     * @param LoggerInterface|null $logger    Логгер (опционально)
+     * @param HttpClientInterface  $httpClient HTTP-транспорт
+     * @param ConfigInterface      $config     Конфигурация SDK
+     * @param LoggerInterface|null $logger     Логгер (опционально)
      */
     public function __construct(
         HttpClientInterface $httpClient,
@@ -279,9 +279,9 @@ class Client
     /**
      * Регистрация пользователя + подключение пакета в одной операции
      *
-     * @param array $userData     Данные для регистрации
-     * @param int   $packetId    ID пакета для подключения
-     * @param bool  $renew       Автопродление подписки
+     * @param array $userData Данные для регистрации
+     * @param int   $packetId ID пакета для подключения
+     * @param bool  $renew    Автопродление подписки
      *
      * @throws \TwentyFourTv\Exception\TwentyFourTvException
      *
@@ -364,8 +364,8 @@ class Client
     /**
      * Разрешить сервис: кастомная фабрика → инстанс по умолчанию
      *
-     * @param string $interface        FQCN интерфейса
-     * @param string $defaultClass     FQCN реализации по умолчанию
+     * @param string $interface    FQCN интерфейса
+     * @param string $defaultClass FQCN реализации по умолчанию
      *
      * @return object
      */

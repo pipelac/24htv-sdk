@@ -2,8 +2,8 @@
 
 namespace TwentyFourTv\Tests\Unit\Model;
 
-use TwentyFourTv\Model\PaginatedResult;
 use PHPUnit\Framework\TestCase;
+use TwentyFourTv\Model\PaginatedResult;
 
 class PaginatedResultTest extends TestCase
 {

@@ -2,10 +2,10 @@
 
 namespace TwentyFourTv\Tests\Unit\Service;
 
-use TwentyFourTv\Service\MessageService;
 use PHPUnit\Framework\TestCase;
 use TwentyFourTv\Contract\HttpClientInterface;
 use TwentyFourTv\Exception\ValidationException;
+use TwentyFourTv\Service\MessageService;
 
 class MessageServiceTest extends TestCase
 {

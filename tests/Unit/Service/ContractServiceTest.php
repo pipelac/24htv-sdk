@@ -2,9 +2,9 @@
 
 namespace TwentyFourTv\Tests\Unit\Service;
 
+use PHPUnit\Framework\TestCase;
 use TwentyFourTv\Contract\HttpClientInterface;
 use TwentyFourTv\Service\ContractService;
-use PHPUnit\Framework\TestCase;
 
 class ContractServiceTest extends TestCase
 {

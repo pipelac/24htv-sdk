@@ -2,8 +2,8 @@
 
 namespace TwentyFourTv\Tests\Unit\Model;
 
-use TwentyFourTv\Model\Device;
 use PHPUnit\Framework\TestCase;
+use TwentyFourTv\Model\Device;
 
 class DeviceTest extends TestCase
 {

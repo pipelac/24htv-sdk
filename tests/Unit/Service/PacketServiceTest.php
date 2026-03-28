@@ -2,11 +2,11 @@
 
 namespace TwentyFourTv\Tests\Unit\Service;
 
-use TwentyFourTv\Contract\HttpClientInterface;
-use TwentyFourTv\Service\PacketService;
 use PHPUnit\Framework\TestCase;
+use TwentyFourTv\Contract\HttpClientInterface;
 use TwentyFourTv\Exception\ValidationException;
 use TwentyFourTv\Model\Packet;
+use TwentyFourTv\Service\PacketService;
 
 class PacketServiceTest extends TestCase
 {

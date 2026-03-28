@@ -2,9 +2,9 @@
 
 namespace TwentyFourTv\Tests\Unit;
 
+use PHPUnit\Framework\TestCase;
 use TwentyFourTv\Contract\ConfigInterface;
 use TwentyFourTv\HttpClient;
-use PHPUnit\Framework\TestCase;
 
 class HttpClientTest extends TestCase
 {

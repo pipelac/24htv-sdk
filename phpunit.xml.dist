@@ -10,12 +10,12 @@
         </testsuite>
     </testsuites>
 
-    <filter>
-        <whitelist processUncoveredFilesFromWhitelist="true">
+    <source>
+        <include>
             <directory>src/</directory>
-            <exclude>
-                <directory>src/Resolver/</directory>
-            </exclude>
-        </whitelist>
-    </filter>
+        </include>
+        <exclude>
+            <directory>src/Resolver/</directory>
+        </exclude>
+    </source>
 </phpunit>

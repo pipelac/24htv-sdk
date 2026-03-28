@@ -2,8 +2,8 @@
 
 namespace TwentyFourTv\Tests\Unit\Model;
 
-use TwentyFourTv\Model\User;
 use PHPUnit\Framework\TestCase;
+use TwentyFourTv\Model\User;
 
 class UserTest extends TestCase
 {

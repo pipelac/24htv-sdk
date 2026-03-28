@@ -2,8 +2,8 @@
 
 namespace TwentyFourTv\Tests\Unit\Model;
 
-use TwentyFourTv\Model\Subscription;
 use PHPUnit\Framework\TestCase;
+use TwentyFourTv\Model\Subscription;
 
 class SubscriptionTest extends TestCase
 {

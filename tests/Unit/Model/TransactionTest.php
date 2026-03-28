@@ -2,8 +2,8 @@
 
 namespace TwentyFourTv\Tests\Unit\Model;
 
-use TwentyFourTv\Model\Transaction;
 use PHPUnit\Framework\TestCase;
+use TwentyFourTv\Model\Transaction;
 
 class TransactionTest extends TestCase
 {

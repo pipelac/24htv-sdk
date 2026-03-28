@@ -2,8 +2,8 @@
 
 namespace TwentyFourTv\Tests\Unit\Model;
 
-use TwentyFourTv\Model\Channel;
 use PHPUnit\Framework\TestCase;
+use TwentyFourTv\Model\Channel;
 
 class ChannelTest extends TestCase
 {

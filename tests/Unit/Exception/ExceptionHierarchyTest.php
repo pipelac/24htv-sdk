@@ -2,15 +2,15 @@
 
 namespace TwentyFourTv\Tests\Unit\Exception;
 
-use TwentyFourTv\Exception\ConnectionException;
-use TwentyFourTv\Exception\NotFoundException;
-use TwentyFourTv\Exception\TwentyFourTvException;
-use TwentyFourTv\Exception\ValidationException;
 use PHPUnit\Framework\TestCase;
 use TwentyFourTv\Exception\AuthenticationException;
 use TwentyFourTv\Exception\ConflictException;
+use TwentyFourTv\Exception\ConnectionException;
 use TwentyFourTv\Exception\ForbiddenException;
+use TwentyFourTv\Exception\NotFoundException;
 use TwentyFourTv\Exception\RateLimitException;
+use TwentyFourTv\Exception\TwentyFourTvException;
+use TwentyFourTv\Exception\ValidationException;
 
 class ExceptionHierarchyTest extends TestCase
 {

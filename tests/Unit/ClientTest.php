@@ -146,11 +146,13 @@ class ClientTest extends TestCase
                     $this->assertEquals('/users', $endpoint);
                     $this->assertEquals($userData, $data);
                     $callIndex++;
+
                     return $user;
                 }
                 $this->assertEquals('/users/42/subscriptions', $endpoint);
                 $this->assertEquals([['packet_id' => 80, 'renew' => true]], $data);
                 $callIndex++;
+
                 return $subs;
             });
 

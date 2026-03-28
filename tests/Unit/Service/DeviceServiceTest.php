@@ -2,10 +2,10 @@
 
 namespace TwentyFourTv\Tests\Unit\Service;
 
-use TwentyFourTv\Service\DeviceService;
 use PHPUnit\Framework\TestCase;
 use TwentyFourTv\Contract\HttpClientInterface;
 use TwentyFourTv\Exception\ValidationException;
+use TwentyFourTv\Service\DeviceService;
 
 class DeviceServiceTest extends TestCase
 {

@@ -2,9 +2,9 @@
 
 namespace TwentyFourTv\Tests\Unit\Service;
 
+use PHPUnit\Framework\TestCase;
 use TwentyFourTv\Contract\HttpClientInterface;
 use TwentyFourTv\Service\AuthService;
-use PHPUnit\Framework\TestCase;
 
 class AuthServiceTest extends TestCase
 {
