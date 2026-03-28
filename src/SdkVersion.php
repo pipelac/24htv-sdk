@@ -18,7 +18,7 @@ namespace TwentyFourTv;
 final class SdkVersion
 {
     /** @var string Текущая версия SDK */
-    public const VERSION = '1.0.0';
+    const VERSION = '1.0.0';
 
     /**
      * Получить строку User-Agent для HTTP-запросов

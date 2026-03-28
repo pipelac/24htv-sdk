@@ -28,13 +28,13 @@ namespace TwentyFourTv\Http;
 class CircuitBreaker
 {
     /** @var string Состояние: запросы проходят */
-    public const STATE_CLOSED = 'closed';
+    const STATE_CLOSED = 'closed';
 
     /** @var string Состояние: запросы блокируются */
-    public const STATE_OPEN = 'open';
+    const STATE_OPEN = 'open';
 
     /** @var string Состояние: пробный запрос */
-    public const STATE_HALF_OPEN = 'half_open';
+    const STATE_HALF_OPEN = 'half_open';
 
     /** @var int Порог количества сбоев до OPEN */
     private $failureThreshold;

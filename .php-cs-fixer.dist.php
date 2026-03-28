@@ -22,6 +22,7 @@ return (new PhpCsFixer\Config())
         'phpdoc_separation' => true,
         'phpdoc_trim' => true,
         'no_extra_blank_lines' => true,
+        'visibility_required' => ['elements' => ['property', 'method']],
     ])
     ->setFinder($finder)
     ->setUsingCache(true);
