@@ -109,10 +109,12 @@ abstract class AbstractService
     /**
      * Создать типизированную модель из ответа API
      *
-     * @param string     $modelClass FQCN класса модели (наследника AbstractModel)
-     * @param array|null $data       Данные от API
+     * @template T of AbstractModel
      *
-     * @return AbstractModel
+     * @param class-string<T> $modelClass FQCN класса модели
+     * @param array|null      $data       Данные от API
+     *
+     * @return T
      */
     protected function createModel($modelClass, $data)
     {
@@ -126,10 +128,12 @@ abstract class AbstractService
     /**
      * Создать коллекцию типизированных моделей из массива ответов API
      *
-     * @param string $modelClass FQCN класса модели (наследника AbstractModel)
-     * @param array  $items      Массив данных от API
+     * @template T of AbstractModel
      *
-     * @return AbstractModel[]
+     * @param class-string<T> $modelClass FQCN класса модели
+     * @param array           $items      Массив данных от API
+     *
+     * @return T[]
      */
     protected function createCollection($modelClass, $items)
     {
