@@ -1,0 +1,30 @@
+# Зависимости
+/vendor/
+composer.lock
+
+# Конфигурация с секретами
+*.ini
+!cfg/*.ini.example
+
+# Кеш и build
+.phpunit.result.cache
+.phpunit.cache/
+.php-cs-fixer.cache
+.php-cs-fixer.php
+/build/
+test_getters_results.txt
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# PHPUnit local config
+phpunit.xml

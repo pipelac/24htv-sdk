@@ -1,0 +1,11 @@
+parameters:
+    level: 5
+    phpVersion: 70100
+    paths:
+        - src
+    excludePaths:
+        - src/Resolver/*
+    ignoreErrors:
+        - '#Unsafe usage of new static\(\)#'
+        - '#Dead catch - .* is never thrown in the try block#'
+    treatPhpDocTypesAsCertain: false
